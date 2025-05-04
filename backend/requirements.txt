@@ -1,0 +1,15 @@
+flask
+flask_cors
+numpy
+nltk
+spacy
+wordfreq 
+lexical_diversity
+gunicorn
+python-dotenv
+whisper-timestamped
+happytransformer
+onnxruntime 
+torch
+torchaudio
+transformers
