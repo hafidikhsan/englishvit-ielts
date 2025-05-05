@@ -1,6 +1,7 @@
 # Import dependencies
 import os
 from flask import jsonify, request
+import requests
 from textgrid import TextGrid
 import subprocess
 import datetime
@@ -54,14 +55,15 @@ def transcribe():
     with open(os.path.join(directory, f'{file_name}.txt'), 'w') as f:
         f.write(transcribe)
 
-    subprocess.run([
-        "docker", "exec", "mfa",
-        "mfa", "align",
-        directory,  # same dir as dictionary if it's there
-        "english_us_arpa",
-        "english_mfa",
-        directory,
-    ])
+    response = requests.post(
+        "http://mfa:5000/align",
+        json={
+            "input_path": directory,
+            "output_path": directory,
+            "dictionary": "english_us_arpa",
+            "acoustic_model": "english_mfa"
+        }
+    )
 
     tg = TextGrid.fromFile(os.path.join(directory, file_name) + ".TextGrid")
     phones_tier = next(t for t in tg.tiers if 'phone' in t.name.lower())

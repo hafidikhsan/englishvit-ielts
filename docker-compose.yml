@@ -22,7 +22,7 @@ services:
       - mfa
 
   mfa:
-    image: mmcauliffe/montreal-forced-aligner:latest
+    build: ./mfa
     container_name: mfa
     volumes:
       - ./audio:/app/audio
@@ -30,6 +30,8 @@ services:
     entrypoint: ["/bin/bash", "/entrypoint.sh"]
     tty: true
     stdin_open: true
+    ports:
+      - "5001:5000"
     networks:
       - app-network
 
