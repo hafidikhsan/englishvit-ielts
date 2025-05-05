@@ -4,6 +4,7 @@ numpy
 nltk
 spacy
 wordfreq 
+textgrid
 lexical_diversity
 gunicorn
 python-dotenv

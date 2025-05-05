@@ -18,11 +18,18 @@ services:
       - app-network
     volumes:
       - ./audio:/app/audio
+    depends_on:
+      - mfa
 
   mfa:
-    build: ./mfa
-    platform: linux/amd64
+    image: mmcauliffe/montreal-forced-aligner:latest
     container_name: mfa
+    volumes:
+      - ./audio:/app/audio
+      - ./mfa/entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    tty: true
+    stdin_open: true
     networks:
       - app-network
 

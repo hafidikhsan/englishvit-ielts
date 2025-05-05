@@ -1,6 +1,9 @@
 # Import dependencies
 import os
 from flask import jsonify, request
+from textgrid import TextGrid
+import subprocess
+import datetime
 
 # Import routes
 from app.api.routes import api_bp
@@ -32,8 +35,14 @@ def transcribe():
     # Get the file name
     file_name = audio_file.filename
 
+    # Define directory
+    directory = f'/app/audio/{datetime.datetime.now().strftime("%Y-%m-%d:%H-%M-%S")}'
+
+    # Create new directorty using time stamp
+    os.makedirs(directory)
+
     # Save the file
-    audio_file_path = os.path.join('/app/audio', file_name)
+    audio_file_path = os.path.join(directory, file_name)
 
     # Save the file
     audio_file.save(audio_file_path)
@@ -41,8 +50,69 @@ def transcribe():
     # Process the audio
     (transcribe, words) = asr_service.process_audio(audio_file_path)
 
-    # Remove the file
-    os.remove(audio_file_path)
+    # Wite transcribe text to file
+    with open(os.path.join(directory, f'{file_name}.txt'), 'w') as f:
+        f.write(transcribe)
+
+    subprocess.run([
+        "docker", "exec", "mfa",
+        "mfa", "align",
+        directory,  # same dir as dictionary if it's there
+        "english_us_arpa",
+        "english_mfa",
+        directory,
+    ])
+
+    tg = TextGrid.fromFile(os.path.join(directory, file_name) + ".TextGrid")
+    phones_tier = next(t for t in tg.tiers if 'phone' in t.name.lower())
+    words_tier = next(t for t in tg.tiers if 'word' in t.name.lower())
+
+    word_level_feedback = []
+    ARPABET_TO_READABLE = {
+        'AA': 'ɑ', 'AE': 'æ', 'AH': 'ʌ', 'AO': 'ɔ',
+        'AW': 'aʊ', 'AY': 'aɪ', 'B': 'b', 'CH': 'tʃ',
+        'D': 'd', 'DH': 'ð', 'EH': 'ɛ', 'ER': 'ɝ',
+        'EY': 'eɪ', 'F': 'f', 'G': 'ɡ', 'HH': 'h',
+        'IH': 'ɪ', 'IY': 'i', 'JH': 'dʒ', 'K': 'k',
+        'L': 'l', 'M': 'm', 'N': 'n', 'NG': 'ŋ',
+        'OW': 'oʊ', 'OY': 'ɔɪ', 'P': 'p', 'R': 'ɹ',
+        'S': 's', 'SH': 'ʃ', 'T': 't', 'TH': 'θ',
+        'UH': 'ʊ', 'UW': 'u', 'V': 'v', 'W': 'w',
+        'Y': 'j', 'Z': 'z', 'ZH': 'ʒ'
+    }
+    
+
+    for word_interval in words_tier.intervals:
+        word = word_interval.mark.strip()
+        if word == "" or word.lower() in ["<unk>", "sil", "sp"]:
+            continue
+
+        word_data = {
+            "word": word,
+            "start": round(word_interval.minTime, 2),
+            "end": round(word_interval.maxTime, 2),
+            "phonemes": []
+        }
+
+        for ph in phones_tier.intervals:
+            if ph.minTime >= word_interval.minTime and ph.maxTime <= word_interval.maxTime:
+                ph_mark = ph.mark.strip()
+                if ph_mark == "" or ph_mark.lower() in ["sil", "sp"]:
+                    continue
+                duration = ph.maxTime - ph.minTime
+                status = 0 if duration < 0.06 else 1
+                base = ''.join(filter(str.isalpha, ph_mark))
+                word_data["phonemes"].append({
+                    "phoneme": ARPABET_TO_READABLE.get(base.upper(), base.lower()),
+                    "start": round(ph.minTime, 2),
+                    "end": round(ph.maxTime, 2),
+                    "status": status
+                })
+
+        word_level_feedback.append(word_data)
+
+    # Remove the directory
+    os.rmdir(directory)
 
     fluency_band, fluency_feedback = fluency_service.score(transcribe, words)
     grammar_band, grammar_feedback = grammar_service.score(transcribe)
@@ -62,6 +132,7 @@ def transcribe():
             'band': lexical_band,
             'feedback': lexical_feedback,
         },
+        'word_level_feedback': word_level_feedback,
     }
 
     return jsonify({
