@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify
 import subprocess
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+ev_logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -12,21 +16,24 @@ def align():
     dictionary = data.get("dictionary", "english_us_arpa")
     acoustic_model = data.get("acoustic_model", "english_mfa")
 
-    if not input_dir or not output_dir:
-        return jsonify({"error": "Missing input_path or output_path"}), 400
 
-    if not os.path.exists(input_dir):
-        return jsonify({"error": f"Input path does not exist: {input_dir}"}), 400
+    ev_logger.info(f"Input Directory: {input_dir}")
+    ev_logger.info(f"Output Directory: {output_dir}")
+    ev_logger.info(f"Dictionary: {dictionary}")
+    ev_logger.info(f"Acoustic Model: {acoustic_model}")
 
-    os.makedirs(output_dir, exist_ok=True)
+
+    # if not input_dir or not output_dir:
+    #     return jsonify({"error": "Missing input_path or output_path"}), 400
+
+    # if not os.path.exists(input_dir):
+    #     return jsonify({"error": f"Input path does not exist: {input_dir}"}), 400
+
+    # os.makedirs(output_dir, exist_ok=True)
 
     try:
         subprocess.run([
-            "mfa", "align",
-            input_dir,
-            dictionary,
-            acoustic_model,
-            output_dir
+            "mfa",
         ], check=True)
         return jsonify({"status": "success", "message": "Alignment complete"}), 200
     except subprocess.CalledProcessError as e:
