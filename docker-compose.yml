@@ -21,7 +21,7 @@ services:
 
   mfa:
     build: ./mfa
-    # platform: linux/amd64
+    platform: linux/amd64
     container_name: mfa
     networks:
       - app-network
