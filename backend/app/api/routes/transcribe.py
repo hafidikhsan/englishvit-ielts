@@ -33,26 +33,26 @@ def transcribe():
     # Get the audio file
     audio_file = request.files['file']
 
-    # Get the file name
-    file_name = audio_file.filename
+    # get the date time
+    now = datetime.datetime.now().strftime("%Y-%m-%d:%H-%M-%S")
 
     # Define directory
-    directory = f'/app/audio/{datetime.datetime.now().strftime("%Y-%m-%d:%H-%M-%S")}'
+    directory = f'/app/audio/{now}'
 
     # Create new directorty using time stamp
     os.makedirs(directory)
 
     # Save the file
-    audio_file_path = os.path.join(directory, file_name)
+    audio_file_path = os.path.join(directory, now)
 
     # Save the file
-    audio_file.save(audio_file_path)
+    audio_file.save(audio_file_path + '.wav')
 
     # Process the audio
-    (transcribe, words) = asr_service.process_audio(audio_file_path)
+    (transcribe, words) = asr_service.process_audio(audio_file_path + '.wav')
 
     # Wite transcribe text to file
-    with open(os.path.join(directory, f'{file_name}.txt'), 'w') as f:
+    with open(os.path.join(directory, f'{now}.txt'), 'w') as f:
         f.write(transcribe)
 
     response = requests.post(
@@ -65,7 +65,7 @@ def transcribe():
         }
     )
 
-    tg = TextGrid.fromFile(os.path.join(directory, file_name) + ".TextGrid")
+    tg = TextGrid.fromFile(os.path.join(directory, now) + ".TextGrid")
     phones_tier = next(t for t in tg.tiers if 'phone' in t.name.lower())
     words_tier = next(t for t in tg.tiers if 'word' in t.name.lower())
 
