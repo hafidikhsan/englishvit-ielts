@@ -52,7 +52,7 @@ def transcribe():
     (transcribe, words) = asr_service.process_audio(audio_file_path)
 
     # Wite transcribe text to file
-    with open(os.path.join(directory, f'{file_name.split('.')[0]}.txt'), 'w') as f:
+    with open(os.path.join(directory, f'{file_name}.txt'), 'w') as f:
         f.write(transcribe)
 
     response = requests.post(
