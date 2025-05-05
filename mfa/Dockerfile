@@ -12,4 +12,4 @@ SHELL ["conda", "run", "-n", "myenv", "/bin/bash", "-c"]
 ENV CONDA_DEFAULT_ENV=myenv
 ENV PATH="/opt/conda/envs/myenv/bin:$PATH"
 
-CMD ["/bin/bash"]
+CMD ["bash"]
