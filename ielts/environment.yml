@@ -4,5 +4,5 @@ channels:
 dependencies:
   - python=3.11
   - flask
-  - montreal-forced-aligner=3.2.1
+  - montreal-forced-aligner
   - pip
