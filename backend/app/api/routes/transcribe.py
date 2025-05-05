@@ -18,6 +18,42 @@ from app.services.lexical_service import lexical_service
 # Import modules
 from app.utils.exception import EvException
 
+@api_bp.route('/mfatest', methods = ['POST'])
+def mfatest():
+    response = requests.get("http://mfa:5000/")
+    return jsonify({
+        'status' : 'success',
+        'result' : response.json(),
+    }), 200, {'ContentType' : 'application/json'}
+
+@api_bp.route('/mfa', methods = ['GET'])
+def mfa():
+    response = requests.get("http://mfa:5000/mfa")
+
+@api_bp.route('/download-mfa', methods = ['GET'])
+def download_mfa():
+    response = requests.get("http://mfa:5000/download-mfa")
+    return jsonify({
+        'status' : 'success',
+        'result' : response.json(),
+    }), 200, {'ContentType' : 'application/json'}
+
+@api_bp.route('/download-arpa', methods = ['GET'])
+def download_arpa():
+    response = requests.get("http://mfa:5000/download-arpa")
+    return jsonify({
+        'status' : 'success',
+        'result' : response.json(),
+    }), 200, {'ContentType' : 'application/json'}
+
+@api_bp.route('/align', methods = ['GET'])
+def align():
+    response = requests.get("http://mfa:5000/align")
+    return jsonify({
+        'status' : 'success',
+        'result' : response.json(),
+    }), 200, {'ContentType' : 'application/json'}
+
 # MARK: Transcribe
 @api_bp.route('/transcribe', methods = ['POST'])
 def transcribe():
