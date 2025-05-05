@@ -33,8 +33,12 @@ def align():
 
     try:
         subprocess.run([
-            "mfa",
-        ], check=True)
+            "mfa", "align",
+            input_dir,
+            dictionary,
+            acoustic_model,
+            output_dir
+        ])
         return jsonify({"status": "success", "message": "Alignment complete"}), 200
     except subprocess.CalledProcessError as e:
         return jsonify({"status": "error", "message": str(e)}), 500
