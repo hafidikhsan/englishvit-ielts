@@ -19,6 +19,13 @@ services:
     volumes:
       - ./audio:/app/audio
 
+  mfa:
+    build: ./mfa
+    # platform: linux/amd64
+    container_name: mfa
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
