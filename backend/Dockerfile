@@ -14,10 +14,9 @@ RUN conda config --add channels conda-forge && \
     conda env create -f environment.yml && \
     conda clean -afy
 
-SHELL ["conda", "run", "-n", "ielts", "/bin/bash", "-c"]
-
-RUN mfa model download dictionary english_us_arpa
-RUN mfa model download acoustic english_us_arpa
+RUN /bin/bash -c "source activate ielts && \
+    mfa model download acoustic english_us_arpa && \
+    mfa model download dictionary english_us_arpa"
 
 RUN python3 -m spacy download en_core_web_sm
 
