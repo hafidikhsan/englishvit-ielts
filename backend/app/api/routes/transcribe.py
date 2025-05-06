@@ -5,6 +5,7 @@ from textgrid import TextGrid
 import subprocess
 import datetime
 from pydub import AudioSegment
+import shutil
 
 # Import routes
 from app.api.routes import api_bp
@@ -126,7 +127,8 @@ def transcribe():
         word_level_feedback.append(word_data)
 
     # Remove the directory
-    os.rmdir(directory)
+    # os.rmdir(directory)
+    shutil.rmtree(directory)
 
     # fluency_band, fluency_feedback = fluency_service.score(transcribe, words)
     # grammar_band, grammar_feedback = grammar_service.score(transcribe)
