@@ -1,157 +1,311 @@
-# Import dependencies
+# MARK: Import
+# Dependencies
 import os
-from flask import jsonify, request
-from textgrid import TextGrid
-import subprocess
-import datetime
 from pydub import AudioSegment
-import shutil
+from flask import jsonify, request
 
-# Import routes
+# Routes
 from app.api.routes import api_bp
 
-# Import services
+# Services
 from app.services.asr_service import asr_service
-from app.services.fluency_service import fluency_service
-from app.services.grammar_service import grammar_service
-from app.services.lexical_service import lexical_service
 
-# Import modules
+# Modules
+from config import EvIELTSConfig
 from app.utils.exception import EvException
 
-def convert_to_wav(input_path, output_path):
-    ext = os.path.splitext(input_path)[1][1:].lower()
-    audio = AudioSegment.from_file(input_path, format=ext)
-    audio.export(output_path, format='wav')
+# MARK: ConvertAudioToWav
+def _convert_audio_to_wav(original_path: str) -> str:
+    '''
+    Custom function to convert audio to wav. Build using `pydub` to convert audio files
+    to wav format. 
 
-@api_bp.route('/health', methods = ['GET'])
-def health():
-    return jsonify({
-        'status' : 'success',
-        'message' : 'API is running',
-    }), 200, {'ContentType' : 'application/json'}
+    Important: This function will only convert the audio file to wav format. It will not 
+    delete the original file. The original file will be kept in the same directory as the
+    converted file. The converted file will be saved in the same directory as the original
+    file with the same name as the original file but with `_clean` suffix and `.wav` extension.
+    The function will also resample the audio to 16kHz and convert it to mono.
+
+    Args:
+    - original_path: str: Path to the original audio file.
+
+    Returns:
+    - str: Path to the converted audio file.
+    '''
+    try:
+        # Check if the original file exists
+        if not os.path.exists(original_path):
+            # Define the error message
+            message = f'File not found while convert the audio to wav: {original_path}'
+
+            # Throw an exception
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
+        
+        # Get the original file extension
+        original_file_ext = os.path.splitext(original_path)[1][1:].lower()
+
+        # Get the original file name
+        original_file_name = os.path.splitext(os.path.basename(original_path))[0]
+
+        # Load the audio file using pydub
+        audio = AudioSegment.from_file(
+            original_path, 
+            format = original_file_ext,
+        )
+
+        # Resample the audio to 16kHz and convert to mono
+        audio = audio.set_frame_rate(EvIELTSConfig.audio_clean_sample_rate).set_channels(EvIELTSConfig.audio_clean_channels)
+
+        # Get the directory of the original file
+        original_directory = os.path.dirname(original_path)
+
+        # Define the output file path
+        output_path = os.path.join(
+            original_directory, 
+            f'{original_file_name}_clean.{EvIELTSConfig.audio_clean_extension}'
+        )
+
+        # Export the audio file as wav
+        audio.export(
+            output_path, 
+            format = EvIELTSConfig.audio_clean_extension
+        )
+
+        # Check if the output file exists
+        if not os.path.exists(output_path):
+            # Define the error message
+            message = f'Failed to convert audio to wav output not found: {output_path}'
+
+            # Throw an exception
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
+        
+        # Return the output file path
+        return output_path
+    
+    except EvException as error:
+        # Re-raise the error
+        raise error
+    
+    except Exception as error:
+        # Define the error message
+        message = f'Failed to convert audio to wav: {str(error)}'
+
+        # Throw an exception
+        raise EvException(
+            message = message,
+            status_code = 500,
+            information = {
+                'message': message,
+            }
+        )
+    
+# MARK: DeleteAudioFile
+def _delete_audio_file(file_path: str) -> None:
+    '''
+    Custom function to delete the audio file. The function will take the audio file
+    path and delete the file from the server. The function will also check if the
+    file exists before deleting it.
+
+    Args:
+    - file_path: str: Path to the audio file.
+    '''
+    try:
+        # Check if the file exists
+        if os.path.exists(file_path):
+            # Delete the file
+            os.remove(file_path)
+        else:
+            # Define the error message
+            message = f'File not found while deleting audio file: {file_path}'
+
+            # Throw an exception
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
+    
+    except EvException as error:
+        # Re-raise the error
+        raise error
+    
+    except Exception as error:
+        # Define the error message
+        message = f'Failed to delete audio file: {str(error)}'
+
+        # Throw an exception
+        raise EvException(
+            message = message,
+            status_code = 500,
+            information = {
+                'message': message,
+            }
+        )
 
 # MARK: Transcribe
 @api_bp.route('/transcribe', methods = ['POST'])
 def transcribe():
-    if not request.files or 'file' not in request.files:
-        raise EvException(
-            message = 'Invalid request, audio is required',
-            status_code = 400,
-            information = {
-                'message': 'Invalid request, audio is required',
+    '''
+    Function to transcribe the audio file. The function will take the audio file
+    from the request, and some additional data from the request, and save the data 
+    to the main server database. The function will then process the audio file to 
+    get the transcribe text and word level time stamps. The function also convert 
+    the audio file to wav format and resample the audio file to 16kHz and convert 
+    it to mono. The function will then return the transcribe text, word level time 
+    stamps and some additional data from the request. The function will also delete 
+    the original audio file in server after processing.
+
+    Important: The function also contain a request to the Englishvit API to
+    send the transcribe text, word level time stamps, resampled audio file and
+    some additional data from the request to the main server database.
+    '''
+    # A flag to check if the audio file is already saved
+    audio_file_path = None
+
+    try:
+        # Check if the request has files and if the file is present
+        if not request.files or 'file' not in request.files:
+            # Define the error message
+            message = 'Invalid request, audio file is required'
+
+            # Throw an exception
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
+        
+        # Check if the request has a text `order` and `question` field
+        if 'order' not in request.form or 'question' not in request.form:
+            # Define the error message
+            message = 'Invalid request, order and question are required'
+
+            # Throw an exception
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
+        
+        # Define list of allowed audio file extensions
+        allowed_extensions = ['wav', 'mp3', 'm4a']
+
+        # Get the audio file from the request
+        audio_file = request.files['file']
+
+        # Check if the file is allowed
+        if audio_file.filename.split('.')[-1].lower() not in allowed_extensions:
+            # Define the error message
+            message = 'Invalid file type. Allowed types are: wav, mp3, m4a'
+
+            # Throw an exception
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
+        
+        # Check if the file size is greater than 50MB
+        if audio_file.content_length > 50 * 1024 * 1024:
+            # Define the error message
+            message = 'File size exceeds the limit of 50MB'
+
+            # Throw an exception
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
+        
+        # Get the file name and extension
+        file_name, file_extension = os.path.splitext(audio_file.filename)
+
+        # Define main directory
+        main_directory = '/app/audio'
+
+        # Get the audio file path
+        audio_file_path = os.path.join(main_directory, file_name + file_extension)
+
+        # Save the audio file to the server
+        audio_file.save(audio_file_path)
+
+        # Convert the audio file to wav format and get the output path
+        output_path = _convert_audio_to_wav(audio_file_path)
+
+        # Delete the original audio file
+        _delete_audio_file(audio_file_path)
+
+        # Change the audio file path to the output path
+        audio_file_path = output_path
+
+        # Transcribe the audio file
+        (transcribe, words) = asr_service.process_audio(audio_file_path)
+
+        # Send to Englishvit API
+
+        # Delete the audio file
+        _delete_audio_file(audio_file_path)
+
+        # Set audio file saved flag
+        audio_file_path = None
+
+        # Return the data
+        return jsonify({
+            'status' : 'Success',
+            'result' : {
+                'transcribe': transcribe,
+                'words': words,
+                'order': request.form['order'],
+                'question': request.form['question'],
             }
-        )
+        }), 200, {'ContentType' : 'application/json'}
+        
+    except EvException as error:
+        # Check if the audio file is saved and delete it
+        if audio_file_path:
+            _delete_audio_file(audio_file_path)
+
+        # Return the error message
+        return jsonify({
+            'status' : 'Error',
+            'error' : {
+                'message': error.message,
+                'information': error.information,
+            }
+        }), error.status_code, {'ContentType' : 'application/json'}
     
-    # Get the audio file
-    audio_file = request.files['file']
+    except Exception as error:
+        # Check if the audio file is saved and delete it
+        if audio_file_path:
+            _delete_audio_file(audio_file_path)
 
-    # get the date time
-    now = audio_file.filename
-    file_name = now.split(".")[0]
-
-    # Define directory
-    directory = f'/app/audio/{file_name}'
-
-    # Create new directorty using time stamp
-    os.makedirs(directory)
-
-    # Save the file
-    audio_file_path = os.path.join(directory, now)
-
-    # Save the file
-    audio_file.save(audio_file_path)
-
-    # Process the audio
-    (transcribe, words) = asr_service.process_audio(audio_file_path)
-
-
-    if not now.endswith('.wav'):
-        wav_filename = file_name + '.wav'
-        wav_path = os.path.join(directory, wav_filename)
-        convert_to_wav(audio_file_path, wav_path)
-        os.remove(audio_file_path)
-
-    # Write transcribe text to file
-    with open(os.path.join(directory, f'{file_name}.txt'), 'w') as f:
-        f.write(transcribe)
-
-    response = subprocess.check_output(["mfa", "align", directory, "english_us_arpa", "english_us_arpa", directory, "--clean"])
-
-    tg = TextGrid.fromFile(os.path.join(directory, file_name) + ".TextGrid")
-    phones_tier = next(t for t in tg.tiers if 'phone' in t.name.lower())
-    words_tier = next(t for t in tg.tiers if 'word' in t.name.lower())
-
-    word_level_feedback = []
-    ARPABET_TO_READABLE = {
-        'AA': 'ɑ', 'AE': 'æ', 'AH': 'ʌ', 'AO': 'ɔ',
-        'AW': 'aʊ', 'AY': 'aɪ', 'B': 'b', 'CH': 'tʃ',
-        'D': 'd', 'DH': 'ð', 'EH': 'ɛ', 'ER': 'ɝ',
-        'EY': 'eɪ', 'F': 'f', 'G': 'ɡ', 'HH': 'h',
-        'IH': 'ɪ', 'IY': 'i', 'JH': 'dʒ', 'K': 'k',
-        'L': 'l', 'M': 'm', 'N': 'n', 'NG': 'ŋ',
-        'OW': 'oʊ', 'OY': 'ɔɪ', 'P': 'p', 'R': 'ɹ',
-        'S': 's', 'SH': 'ʃ', 'T': 't', 'TH': 'θ',
-        'UH': 'ʊ', 'UW': 'u', 'V': 'v', 'W': 'w',
-        'Y': 'j', 'Z': 'z', 'ZH': 'ʒ'
-    }
-    
-
-    for word_interval in words_tier.intervals:
-        word = word_interval.mark.strip()
-        if word == "" or word.lower() in ["<unk>", "sil", "sp"]:
-            continue
-
-        word_data = {
-            "word": word,
-            "start": round(word_interval.minTime, 2),
-            "end": round(word_interval.maxTime, 2),
-            "phonemes": []
-        }
-
-        for ph in phones_tier.intervals:
-            if ph.minTime >= word_interval.minTime and ph.maxTime <= word_interval.maxTime:
-                ph_mark = ph.mark.strip()
-                if ph_mark == "" or ph_mark.lower() in ["sil", "sp"]:
-                    continue
-                duration = ph.maxTime - ph.minTime
-                status = 0 if duration < 0.06 else 1
-                base = ''.join(filter(str.isalpha, ph_mark))
-                word_data["phonemes"].append({
-                    "phoneme": ARPABET_TO_READABLE.get(base.upper(), base.lower()),
-                    "start": round(ph.minTime, 2),
-                    "end": round(ph.maxTime, 2),
-                    "status": status
-                })
-
-        word_level_feedback.append(word_data)
-
-    # Remove the directory
-    # os.rmdir(directory)
-    shutil.rmtree(directory)
-
-    # fluency_band, fluency_feedback = fluency_service.score(transcribe, words)
-    # grammar_band, grammar_feedback = grammar_service.score(transcribe)
-    # lexical_band, lexical_feedback = lexical_service.score(transcribe)
-
-    result = {
-        'transcribe': transcribe,
-        # 'fluency': {
-        #     'band': fluency_band,
-        #     'feedback': fluency_feedback,
-        # },
-        # 'grammar': {
-        #     'band': grammar_band,
-        #     'feedback': grammar_feedback,
-        # },
-        # 'lexical': {
-        #     'band': lexical_band,
-        #     'feedback': lexical_feedback,
-        # },
-        'word_level_feedback': word_level_feedback,
-    }
-
-    return jsonify({
-        'status' : 'success',
-        'result' : result,
-    }), 200, {'ContentType' : 'application/json'}
+        # Return the error message
+        return jsonify({
+            'status' : 'Error',
+            'error' : {
+                'message': 'General error occurred',
+                'information': str(error),
+            }
+        }), 500, {'ContentType' : 'application/json'}

@@ -12,6 +12,11 @@ class EvIELTSConfig:
     flask_debug = os.getenv('FLASK_DEBUG', 0) == 1
     flask_run_port = os.getenv('FLASK_RUN_PORT', 5000)
 
+    # MARK: Audio
+    audio_clean_extension = os.getenv('AUDIO_CLEAN_EXTENSION')
+    audio_clean_sample_rate = int(os.getenv('AUDIO_CLEAN_SAMPLE_RATE'))
+    audio_clean_channels = int(os.getenv('AUDIO_CLEAN_CHANNELS'))
+    
     # MARK: ML Model
     hugging_face_api_key = os.getenv('HUGGING_FACE_API_KEY')
     asr_model_name = os.getenv('ASR_MODEL_NAME')
