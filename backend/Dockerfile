@@ -1,16 +1,23 @@
-FROM python:3.9
+FROM continuumio/miniconda3
 
 WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ffmpeg
+    apt-get install -y --no-install-recommends ffmpeg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 
-RUN python3 -m pip install --upgrade pip
+COPY environment.yml .
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN conda config --add channels conda-forge && \
+    conda env create -f environment.yml && \
+    conda clean -afy
+
+SHELL ["conda", "run", "-n", "ielts", "/bin/bash", "-c"]
+
+RUN mfa model download dictionary english_us_arpa
+RUN mfa model download acoustic english_us_arpa
 
 RUN python3 -m spacy download en_core_web_sm
 

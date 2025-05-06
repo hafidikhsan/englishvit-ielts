@@ -1,0 +1,25 @@
+name: ielts
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - joblib=1.4.2
+  - montreal-forced-aligner
+  - pip
+  - pip:
+      - flask
+      - flask_cors
+      - numpy
+      - nltk
+      - spacy
+      - wordfreq
+      - textgrid
+      - lexical_diversity
+      - gunicorn
+      - python-dotenv
+      - whisper-timestamped
+      - happytransformer
+      - onnxruntime
+      - torch
+      - torchaudio
+      - transformers

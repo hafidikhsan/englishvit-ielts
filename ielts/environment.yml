@@ -1,9 +1,0 @@
-name: myenv
-channels:
-  - conda-forge
-dependencies:
-  - python=3.11
-  - flask
-  - joblib=1.4.2
-  - montreal-forced-aligner
-  - pip

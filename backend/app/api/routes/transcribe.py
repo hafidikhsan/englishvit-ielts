@@ -1,7 +1,6 @@
 # Import dependencies
 import os
 from flask import jsonify, request
-import requests
 from textgrid import TextGrid
 import subprocess
 import datetime
@@ -17,42 +16,6 @@ from app.services.lexical_service import lexical_service
 
 # Import modules
 from app.utils.exception import EvException
-
-@api_bp.route('/mfatest', methods = ['POST'])
-def mfatest():
-    response = requests.get("http://mfa:5000/")
-    return jsonify({
-        'status' : 'success',
-        'result' : response.json(),
-    }), 200, {'ContentType' : 'application/json'}
-
-@api_bp.route('/mfa', methods = ['GET'])
-def mfa():
-    response = requests.get("http://mfa:5000/mfa")
-
-@api_bp.route('/download-mfa', methods = ['GET'])
-def download_mfa():
-    response = requests.get("http://mfa:5000/download-mfa")
-    return jsonify({
-        'status' : 'success',
-        'result' : response.json(),
-    }), 200, {'ContentType' : 'application/json'}
-
-@api_bp.route('/download-arpa', methods = ['GET'])
-def download_arpa():
-    response = requests.get("http://mfa:5000/download-arpa")
-    return jsonify({
-        'status' : 'success',
-        'result' : response.json(),
-    }), 200, {'ContentType' : 'application/json'}
-
-@api_bp.route('/align', methods = ['GET'])
-def align():
-    response = requests.get("http://mfa:5000/align")
-    return jsonify({
-        'status' : 'success',
-        'result' : response.json(),
-    }), 200, {'ContentType' : 'application/json'}
 
 # MARK: Transcribe
 @api_bp.route('/transcribe', methods = ['POST'])
@@ -91,15 +54,7 @@ def transcribe():
     with open(os.path.join(directory, f'{now}.txt'), 'w') as f:
         f.write(transcribe)
 
-    response = requests.post(
-        "http://mfa:5000/align",
-        json={
-            "input_path": directory,
-            "output_path": directory,
-            "dictionary": "english_us_arpa",
-            "acoustic_model": "english_mfa"
-        }
-    )
+    response = subprocess.check_output(["mfa", "align", directory, "english_us_arpa", "english_us_arpa", directory, "--clean"])
 
     tg = TextGrid.fromFile(os.path.join(directory, now) + ".TextGrid")
     phones_tier = next(t for t in tg.tiers if 'phone' in t.name.lower())
@@ -152,24 +107,24 @@ def transcribe():
     # Remove the directory
     os.rmdir(directory)
 
-    fluency_band, fluency_feedback = fluency_service.score(transcribe, words)
-    grammar_band, grammar_feedback = grammar_service.score(transcribe)
-    lexical_band, lexical_feedback = lexical_service.score(transcribe)
+    # fluency_band, fluency_feedback = fluency_service.score(transcribe, words)
+    # grammar_band, grammar_feedback = grammar_service.score(transcribe)
+    # lexical_band, lexical_feedback = lexical_service.score(transcribe)
 
     result = {
         'transcribe': transcribe,
-        'fluency': {
-            'band': fluency_band,
-            'feedback': fluency_feedback,
-        },
-        'grammar': {
-            'band': grammar_band,
-            'feedback': grammar_feedback,
-        },
-        'lexical': {
-            'band': lexical_band,
-            'feedback': lexical_feedback,
-        },
+        # 'fluency': {
+        #     'band': fluency_band,
+        #     'feedback': fluency_feedback,
+        # },
+        # 'grammar': {
+        #     'band': grammar_band,
+        #     'feedback': grammar_feedback,
+        # },
+        # 'lexical': {
+        #     'band': lexical_band,
+        #     'feedback': lexical_feedback,
+        # },
         'word_level_feedback': word_level_feedback,
     }
 
