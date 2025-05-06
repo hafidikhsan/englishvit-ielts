@@ -25,4 +25,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app", "--timeout", "120"]
+CMD ["conda", "run", "-n", "ielts", "gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app", "--timeout", "120"]
