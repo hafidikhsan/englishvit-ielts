@@ -4,6 +4,7 @@ from flask import jsonify, request
 from textgrid import TextGrid
 import subprocess
 import datetime
+from pydub import AudioSegment
 
 # Import routes
 from app.api.routes import api_bp
@@ -16,6 +17,11 @@ from app.services.lexical_service import lexical_service
 
 # Import modules
 from app.utils.exception import EvException
+
+def convert_to_wav(input_path, output_path):
+    ext = os.path.splitext(input_path)[1][1:].lower()
+    audio = AudioSegment.from_file(input_path, format=ext)
+    audio.export(output_path, format='wav')
 
 @api_bp.route('/health', methods = ['GET'])
 def health():
@@ -57,6 +63,13 @@ def transcribe():
 
     # Process the audio
     (transcribe, words) = asr_service.process_audio(audio_file_path)
+
+
+    if not now.endswith('.wav'):
+        wav_filename = file_name + '.wav'
+        wav_path = os.path.join(directory, wav_filename)
+        convert_to_wav(audio_file_path, wav_path)
+        os.remove(audio_file_path)
 
     # Write transcribe text to file
     with open(os.path.join(directory, f'{file_name}.txt'), 'w') as f:
