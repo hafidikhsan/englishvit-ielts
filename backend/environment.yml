@@ -7,13 +7,15 @@ dependencies:
   - montreal-forced-aligner
   - pip
   - pip:
+      - textgrid
       - flask
       - flask_cors
       - numpy
+      - datetime
       - nltk
       - spacy
       - wordfreq
-      - textgrid
+      - statistics
       - lexical_diversity
       - gunicorn
       - python-dotenv

@@ -25,4 +25,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["/bin/bash", "-c", "conda run -n ielts gunicorn --bind 0.0.0.0:5000 wsgi:app --timeout 120"]
+CMD ["/bin/bash", "-c", "source activate ielts && gunicorn --bind 0.0.0.0:5000 wsgi:app --timeout 120"]
