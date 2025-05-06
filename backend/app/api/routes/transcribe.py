@@ -17,6 +17,13 @@ from app.services.lexical_service import lexical_service
 # Import modules
 from app.utils.exception import EvException
 
+@api_bp.route('/health', methods = ['GET'])
+def health():
+    return jsonify({
+        'status' : 'success',
+        'message' : 'API is running',
+    }), 200, {'ContentType' : 'application/json'}
+
 # MARK: Transcribe
 @api_bp.route('/transcribe', methods = ['POST'])
 def transcribe():
