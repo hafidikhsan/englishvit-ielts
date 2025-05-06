@@ -39,3 +39,7 @@ class EvIELTSConfig:
 
     # MARK: Logging
     log_level = os.getenv('LOG_LEVEL')
+
+    # MARK: Application
+    app_name = os.getenv('APP_NAME')
+    app_version = os.getenv('APP_VERSION')

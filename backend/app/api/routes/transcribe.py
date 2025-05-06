@@ -13,6 +13,7 @@ from app.services.asr_service import asr_service
 # Modules
 from config import EvIELTSConfig
 from app.utils.exception import EvException
+from app.models.response import EvResponseModel
 
 # MARK: ConvertAudioToWav
 def _convert_audio_to_wav(original_path: str) -> str:
@@ -272,15 +273,17 @@ def transcribe():
         audio_file_path = None
 
         # Return the data
-        return jsonify({
-            'status' : 'Success',
-            'result' : {
+        return jsonify(EvResponseModel(
+            code = 200,
+            status = 'Success',
+            message = 'Transcribe successful',
+            data = {
                 'transcribe': transcribe,
                 'words': words,
                 'order': request.form['order'],
                 'question': request.form['question'],
-            }
-        }), 200, {'ContentType' : 'application/json'}
+            },
+        ).to_dict()), 200, {'ContentType' : 'application/json'}
         
     except EvException as error:
         # Check if the audio file is saved and delete it
@@ -288,13 +291,17 @@ def transcribe():
             _delete_audio_file(audio_file_path)
 
         # Return the error message
-        return jsonify({
-            'status' : 'Error',
-            'error' : {
-                'message': error.message,
-                'information': error.information,
-            }
-        }), error.status_code, {'ContentType' : 'application/json'}
+        return jsonify(EvResponseModel(
+            code = error.status_code,
+            status = 'Error',
+            message = error.message,
+            data = {
+                'error': {
+                    'message': error.message,
+                    'information': error.information,
+                },
+            },
+        ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
     
     except Exception as error:
         # Check if the audio file is saved and delete it
@@ -302,10 +309,13 @@ def transcribe():
             _delete_audio_file(audio_file_path)
 
         # Return the error message
-        return jsonify({
-            'status' : 'Error',
-            'error' : {
-                'message': 'General error occurred',
-                'information': str(error),
-            }
-        }), 500, {'ContentType' : 'application/json'}
+        return jsonify(EvResponseModel(
+            code = 500,
+            status = 'Error',
+            message = 'Internal server error',
+            data = {
+                'error': {
+                    'message': str(error),
+                },
+            },
+        ).to_dict()), 500, {'ContentType' : 'application/json'}
