@@ -52,6 +52,9 @@ def create_app():
     ev_logger.info('Start downloading Lexical model ...')
     from app.services.lexical_service import lexical_service
     ev_logger.info('Lexical model downloaded successfully √')
+    ev_logger.info('Start downloading Pronunciation model ...')
+    from app.services.pronunciation_service import pronunciation_service
+    ev_logger.info('Pronunciation model downloaded successfully √')
     
     # Return the app instance
     return app

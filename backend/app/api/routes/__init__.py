@@ -6,6 +6,7 @@ api_bp = Blueprint('/api', __name__)
 
 # Import routes
 from app.api.routes.transcribe import *
+from app.api.routes.evaluation import *
 
 @api_bp.route('/', methods = ['GET'])
 def health():
