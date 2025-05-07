@@ -156,16 +156,19 @@ class PronunciationService:
 
             # Loop through the phonemes
             for ph in word_data['phonemes']:
+                # Get the phoneme
+                ph_ipa = ph['ipa']
+
                 # Check if the phoneme is not pronounced
                 if ph['status'] == 0:
                     # Set the flag to False
                     is_true = False
                     
                     # Add the phoneme to the phonemes string with red color
-                    phonemes += f"<span style=\"color:red;\">{ph["ipa"]}</span>"
+                    phonemes += f"<span style=\"color:red;\">{ph_ipa}</span>"
                 else:
                     # Add the phoneme to the phonemes string
-                    phonemes += f"{ph["ipa"]}"
+                    phonemes += f"{ph_ipa}"
             
             # Check if the word does not have missing phonemes
             if is_true:
@@ -270,7 +273,7 @@ class PronunciationService:
             ev_logger.info(f'Corpus Path: {corpus_path}')
             ev_logger.info(f'Transcribe: {transcribe}')
             ev_logger.info(f'Words Timestamps: {words_timestamps}')
-            
+
             # Check if transcribe is empty
             if transcribe == '':
                 # Return the evaluation model
