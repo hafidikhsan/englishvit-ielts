@@ -9,6 +9,7 @@ from textgrid import TextGrid
 from app.models.evaluation import EvEvaluationModel
 from app.utils.exception import EvException
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
+from app.utils.logger import ev_logger
 
 # MARK: PronunciationService
 class PronunciationService:
@@ -57,13 +58,31 @@ class PronunciationService:
         '''
         Maps pronounce evaluation metrics to an IELTS band.
         '''
+        # Log all the parameters
+        ev_logger.info(f'Phoneme Count: {phoneme_count}')
+        ev_logger.info(f'Phoneme Error Count: {phoneme_error_count}')
+        ev_logger.info(f'Missing Phoneme Count: {missing_phoneme_count}')
+        ev_logger.info(f'Word Count: {word_count}')
+        ev_logger.info(f'Word Error Count: {word_error_count}')
+        ev_logger.info(f'Missing Word Count: {missing_word_count}')
+        ev_logger.info(f'Mean Duration: {mean_duration}')
+        ev_logger.info(f'Std Duration: {std_duration}')
+
         # Adjust phoneme and word counts to include missing ones
         total_phoneme_count = phoneme_count + missing_phoneme_count
         total_word_count = word_count + missing_word_count
 
+        # Log the total counts
+        ev_logger.info(f'Total Phoneme Count: {total_phoneme_count}')
+        ev_logger.info(f'Total Word Count: {total_word_count}')
+
         # Calculate error rates
         phoneme_error_rate = (phoneme_error_count + missing_phoneme_count) / total_phoneme_count if total_phoneme_count > 0 else 1
         word_error_rate = (word_error_count + missing_word_count) / total_word_count if total_word_count > 0 else 1
+
+        # Log the error rates
+        ev_logger.info(f'Phoneme Error Rate: {phoneme_error_rate}')
+        ev_logger.info(f'Word Error Rate: {word_error_rate}')
 
         # Define thresholds for IELTS bands
         if phoneme_error_rate < 0.05 and word_error_rate < 0.05:
@@ -143,23 +162,23 @@ class PronunciationService:
                     is_true = False
                     
                     # Add the phoneme to the phonemes string with red color
-                    phonemes += f'<span style="color:red;">{ph["ipa"]}</span>'
+                    phonemes += f"<span style=\"color:red;\">{ph["ipa"]}</span>"
                 else:
                     # Add the phoneme to the phonemes string
-                    phonemes += f'{ph["ipa"]}'
+                    phonemes += f"{ph["ipa"]}"
             
             # Check if the word does not have missing phonemes
             if is_true:
                 # Add the original sentence with the word
-                original_sentence += f'{word} '
+                original_sentence += f"{word} "
             else:
                 # Add the original sentence with the word but using red color
-                original_sentence += f'<span style="color:red;">{word}</span> '
+                original_sentence += f"<span style=\"color:red;\">{word}</span> "
 
                 # Add the phoneme error data
                 phoneme_error.append((
                     word, 
-                    f'/{phonemes}/',
+                    f"/{phonemes}/",
                 ))
         
         # Strip the original sentence and add HTML tags
@@ -175,7 +194,7 @@ class PronunciationService:
         if phoneme_error:
             # Loop through the phoneme error
             for error in phoneme_error:
-                correction_sentence += f'<li><span style="color:red;">{error[0]}</span>: {error[1]}</li>'
+                correction_sentence += f"<li><span style=\"color:red;\">{error[0]}</span>: {error[1]}</li>"
         
             correction_sentence = '<ul>' + correction_sentence + '</ul>'
 
@@ -247,6 +266,11 @@ class PronunciationService:
         information. 
         '''
         try:
+            # Log the parameters
+            ev_logger.info(f'Corpus Path: {corpus_path}')
+            ev_logger.info(f'Transcribe: {transcribe}')
+            ev_logger.info(f'Words Timestamps: {words_timestamps}')
+            
             # Check if transcribe is empty
             if transcribe == '':
                 # Return the evaluation model
