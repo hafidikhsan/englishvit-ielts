@@ -870,7 +870,7 @@ class GrammarService:
             feedbacks = []
 
             # Define variable to save html feedback
-            html_sentence = ''
+            html_sentence = []
             html_sentence_corrections = []
 
             # Define variable to save grammar range feedback
@@ -898,7 +898,7 @@ class GrammarService:
                     grammar_accuracy_feedbacks_original, grammar_accuracy_html_feedbacks = self._get_grammar_error_information(transcribe_tokens, correction_tokens)
 
                     # Add the html feedback
-                    html_sentence += grammar_accuracy_html_feedbacks
+                    html_sentence.append(grammar_accuracy_html_feedbacks)
                     
                     # Get the error rate
                     error_rate = self._get_grammar_error_rate(grammar_accuracy_feedbacks_original, len(transcribe_tokens))
@@ -1042,7 +1042,7 @@ class GrammarService:
                 ).rounded_band
 
                 # Define variable for final html feedback
-                final_html_feedback = f'<p><strong>Original Sentence:</strong></p>{html_sentence}'
+                final_html_feedback = f'<p><strong>Original Sentence:</strong></p><p>{' '.join(html_sentence)}</p>'
 
                 # Add the correction sentence if it exists
                 if html_sentence_corrections != '':
