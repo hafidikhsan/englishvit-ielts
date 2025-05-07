@@ -10,6 +10,7 @@ from app.api.routes import api_bp
 
 # Services
 from app.services.pronunciation_service import pronunciation_service
+from app.services.grammar_service import grammar_service
 
 # Modules
 from app.utils.exception import EvException
@@ -21,6 +22,7 @@ def evaluation(type):
     '''
     Function to handle the evaluation process based on the type of evaluation requested.
     '''
+    # MARK: Pronunciation
     # Switch case for different evaluation types
     if type == 'pronunciation':
         # A flag to check if the corpus is already saved
@@ -146,7 +148,65 @@ def evaluation(type):
                     },
                 },
             ).to_dict()), 500, {'ContentType' : 'application/json'}
+        
+    # MARK: Grammar
+    elif type == 'grammar':
+        try:
+            # Check if the request has a text `transcribe` field
+            if 'transcribe' not in request.form:
+                # Define the error message
+                message = 'Invalid request, transcribe are required'
+
+                # Throw an exception
+                raise EvException(
+                    message = message,
+                    status_code = 500,
+                    information = {
+                        'message': message,
+                    }
+                )
+            
+            # Evaluate the grammar
+            evaluation = grammar_service.evaluate_grammar(
+                transcribe = request.form.get('transcribe'),
+            )
+
+            # Return the evaluation result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Grammar evaluation completed successfully',
+                data = evaluation.to_dict(),
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = error.message,
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
     else:
+        # MARK: InvalidType
         # Return the error message
         return jsonify(EvResponseModel(
             code = 500,

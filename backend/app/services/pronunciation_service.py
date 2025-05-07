@@ -9,7 +9,6 @@ from textgrid import TextGrid
 from app.models.evaluation import EvEvaluationModel
 from app.utils.exception import EvException
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
-from app.utils.logger import ev_logger
 
 # MARK: PronunciationService
 class PronunciationService:
@@ -53,22 +52,11 @@ class PronunciationService:
         '''
         Maps pronounce evaluation metrics to an IELTS band.
         '''
-        # Log all the parameters
-        ev_logger.info(f'Phoneme Count: {phoneme_count}')
-        ev_logger.info(f'Phoneme Error Count: {phoneme_error_count}')
-        ev_logger.info(f'Missing Phoneme Count: {missing_phoneme_count}')
-
         # Adjust phoneme and word counts to include missing ones
         total_phoneme_count = phoneme_count + missing_phoneme_count
 
-        # Log the total counts
-        ev_logger.info(f'Total Phoneme Count: {total_phoneme_count}')
-
         # Calculate error rates
         phoneme_error_rate = (phoneme_error_count + missing_phoneme_count) / total_phoneme_count if total_phoneme_count > 0 else 1
-
-        # Log the error rates
-        ev_logger.info(f'Phoneme Error Rate: {phoneme_error_rate}')
 
         # Define thresholds for IELTS bands
         if phoneme_error_rate < 0.05:
@@ -255,11 +243,6 @@ class PronunciationService:
         information. 
         '''
         try:
-            # Log the parameters
-            ev_logger.info(f'Corpus Path: {corpus_path}')
-            ev_logger.info(f'Transcribe: {transcribe}')
-            ev_logger.info(f'Words Timestamps: {words_timestamps}')
-
             # Check if transcribe is empty
             if transcribe == '':
                 # Return the evaluation model
