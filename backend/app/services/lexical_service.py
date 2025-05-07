@@ -1,4 +1,5 @@
-# Import dependency
+# MARK: Import 
+# Dependency
 import datetime
 import string
 import torch
@@ -15,21 +16,29 @@ from transformers import (
     AutoModelForSequenceClassification,
 )
 
-# Import modules
+# Modules
 from config import EvIELTSConfig
 from app.utils.exception import EvException
 from app.services.spacy_service import spacy_service
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
+from app.models.evaluation import EvEvaluationModel
 from app.utils.logger import ev_logger
 
 # MARK: LexicalService
 class LexicalService:
     '''
-    A class to manage all the lexical IELTS assessment services. This
-    class will calculate the lexical score, the IELTS band, feedback.
+    LexicalService is a class to manage all the lexical service. In this service will download
+    CEFR classification model and bert fill masked model. The CEFR classification model is used to classify
+    text to CEFR level and the bert fill masked model is used to fill masked words in sentences.
+    The lexical service will also provide a method to evaluate the lexical sophistication, lexical diversity,
+    lexical collocation, and repetition words in a transcription. From the evaluation, the lexical service
+    will return the IELTS band score and feedback.
     '''
+    # MARK: Properties
     def __init__(self):
-        # Class properties
+        '''
+        Initializes the LexicalService with the given parameters.
+        '''
         self.cefr_classification_model_name = EvIELTSConfig.lexical_cefr_classification_model_name
         self.cefr_classification_model = None
         self.cefr_classification_tokenizer = None
@@ -48,6 +57,12 @@ class LexicalService:
 
     # MARK: StartDownloadModel
     def _start_download_model(self):
+        '''
+        Function to start download the model. This function will download all the model
+        that is used in the lexical service. The model that is downloaded are:
+        - CEFR classification model
+        - BERT fill masked model
+        '''
         try:
             ev_logger.info(f'Starting download {self.cefr_classification_model_name} ...')
 
@@ -63,7 +78,7 @@ class LexicalService:
                 token = EvIELTSConfig.hugging_face_api_key
             )
 
-            ev_logger.info(f'Successfuly download {self.cefr_classification_model_name} √')
+            ev_logger.info(f'Successfully download {self.cefr_classification_model_name} √')
 
             ev_logger.info(f'Starting download {self.bert_fill_masked_model_name} ...')
 
@@ -74,17 +89,24 @@ class LexicalService:
                 token = EvIELTSConfig.hugging_face_api_key,
             )
 
-            ev_logger.info(f'Successfuly download {self.bert_fill_masked_model_name} √')
+            ev_logger.info(f'Successfully download {self.bert_fill_masked_model_name} √')
         except Exception as error:
           ev_logger.info(f'Failed to download models ×')
           ev_logger.info(f'Error: {error}')
 
     # MARK: CheckModel
     def check_model(self):
+        '''
+        Function to check if the model is ready. This function will return True if the model is ready
+        '''
         return self.cefr_classification_model is not None and self.cefr_classification_tokenizer is not None and self.bert_fill_masked_model is not None
 
     # MARK: HealthCheck
     def health_check(self):
+        '''
+        Function to check the health of the model. This function will return the
+        information about the model. 
+        '''
         return {
             'cefr_classification_model_ready': self.cefr_classification_model is not None and self.cefr_classification_tokenizer is not None,
             'cefr_classification_model_name': self.cefr_classification_model_name,
@@ -102,11 +124,23 @@ class LexicalService:
         
     # MARK: UpdateModel
     def update_model(self):
+        '''
+        Function to update the model. This function will update the model to the latest
+        version.
+        '''
         # Start download new model
         self._start_download_model()
 
     # MARK: GetLexicalSophistication
     def _get_lexical_sophistication(self, words: list) -> dict:
+        '''
+        Function to get the lexical sophistication of the words. This function will
+        categorize the words into 4 categories:
+        - Very common
+        - Common
+        - Less common
+        - Advanced
+        '''
         # Define level of each data and the empty list to store the words
         levels = {
             'advanced': [],
@@ -141,7 +175,13 @@ class LexicalService:
     
     # MARK: GetContentWords
     def _get_content_words(self, transcribe: str) -> list:
-        # Get the stopword from nltk
+        '''
+        Function to get the content words from the transcribe. This function will remove
+        the stop words and punctuation from the transcribe. The content words are the
+        words that are not stop words and not punctuation. The function will return
+        a list of content words.
+        '''
+        # Get the stop word from nltk
         stop_words = set(stopwords.words('english'))
 
         # Get the word in the transcribe
@@ -150,8 +190,12 @@ class LexicalService:
         # Return a list that contain transcribe words without stop words
         return [word for word in words if word not in stop_words]
 
-    # MARK: GetRepetitionWordsWithoutStopword
-    def _get_repetition_words_without_stopword(self, transcribe: str) -> dict:
+    # MARK: GetRepetitionWordsWithoutStopWord
+    def _get_repetition_words_without_stop_word(self, transcribe: str) -> dict:
+        '''
+        Function to get the repetition words without stop word. This function will
+        return a dict of the repetition words and the count of the words.
+        '''
         # Get the content of the words
         words = self._get_content_words(transcribe)
 
@@ -163,13 +207,19 @@ class LexicalService:
     
     # MARK: GetLexicalCollocationPrediction
     def _get_lexical_collocation_prediction(self, transcribe: str) -> list:
-        # Get the stopword from nltk
+        '''
+        Function to get the lexical collocation prediction. This function will
+        return a list of the lexical collocation prediction. The prediction will
+        contain the word, the sentence, and the prediction result. The prediction
+        result will be a list of the predicted words.
+        '''
+        # Get the stop word from nltk
         stop_words = set(stopwords.words('english'))
 
         # Tokenize the transcribe
         sentences = sent_tokenize(transcribe)
 
-        # Define variable to store the lexial collocation prediction
+        # Define variable to store the lexical collocation prediction
         lexical_collocation_prediction = []
 
         # Loop through the sentences
@@ -182,7 +232,6 @@ class LexicalService:
 
             # Define variable to save the the potential masked and masked predict result
             potential_masked = []
-            masked_predict = []
 
             # Loop through the word pos tags
             for index, (word, tag) in enumerate(word_pos_tags):
@@ -213,7 +262,7 @@ class LexicalService:
                     # Get the prediction result
                     predicted_words = [pred['token_str'] for pred in predictions]
 
-                    # Add the predict in the lexical collcoation predict
+                    # Add the predict in the lexical collocation predict
                     lexical_collocation_prediction.append((
                         masked[-1] in predicted_words[:5],
                         masked[-1],
@@ -226,6 +275,12 @@ class LexicalService:
 
     # MARK: GetLexicalCollocationScore
     def _get_lexical_collocation_score(self, lexical_collocation_prediction: list) -> float:
+        '''
+        Function to get the lexical collocation score. This function will return
+        a score of the lexical collocation prediction. The score will be calculated
+        by dividing the number of correct prediction by the total number of prediction.
+        The score will be multiplied by 100 and rounded to 3 decimal places.
+        '''
         # If the prediction is empty return 0
         if not lexical_collocation_prediction:
             return 0
@@ -234,6 +289,16 @@ class LexicalService:
 
     # MARK: EvaluateLexicalSophistication
     def _evaluate_lexical_sophistication(self, distribution: dict, repetition_score: float, total_words: float) -> float:
+        '''
+        Function to evaluate the lexical sophistication. This function will return
+        the IELTS band based on the lexical sophistication. The lexical sophistication
+        will be calculated based on the distribution of the words. The distribution
+        will be categorized into 4 categories:
+        - Very common: 0
+        - Common: 1
+        - Less common: 2
+        - Advanced: 3
+        '''
         # Calculate the needed data from the distribution
         advance = len(distribution['advanced']) / total_words
         less_common = len(distribution['less_common']) / total_words
@@ -250,8 +315,15 @@ class LexicalService:
             return 6
         else:
             return 5
+        
     # MARK: EvaluateCEFRBandClassification
-    def _evaluate_cefr_band_classification(self, transcribe: str) -> tuple[float, str]:
+    def _evaluate_cefr_band_classification(self, transcribe: str) -> float:
+        '''
+        Function to evaluate the CEFR band classification. This function will return
+        the IELTS band based on the CEFR classification. The CEFR classification will
+        be done by using the CEFR classification model. The model will classify the input
+        text into a CEFR band.
+        '''
         # Tokenize the input
         inputs = self.cefr_classification_tokenizer(
             transcribe,
@@ -277,10 +349,19 @@ class LexicalService:
         }
 
         # Return the IELTS band based on token classification words count
-        return (EvRoundedIELTSBand(cefr_to_ielts[label]).rounded_band, label)
+        return EvRoundedIELTSBand(cefr_to_ielts[label]).rounded_band
 
     # MARK: EvaluateLexicalDiversity
     def _evaluate_lexical_diversity(self, transcribe: str) -> float:
+        '''
+        Function to evaluate the lexical diversity. This function will return
+        the IELTS band based on the lexical diversity. The lexical diversity will
+        be calculated based on the MTLD (Measure of Textual Lexical Diversity).
+        The MTLD will be calculated based on the tokenized words. The MTLD will
+        be calculated using the lexical_diversity library. The MTLD will be
+        calculated based on the tokenized words. This function will return
+        the IELTS band based on the MTLD score. 
+        '''
         # Tokenize the transcribe
         word_token = ld.tokenize(transcribe)
 
@@ -299,8 +380,13 @@ class LexicalService:
         else:
             return 5
 
-    # MARK: EvaluateRepetitionWordsWithoutStopword
-    def _evaluate_repetition_words_without_stopword(self, repetition_words: dict) -> float:
+    # MARK: EvaluateRepetitionWordsWithoutStopWord
+    def _evaluate_repetition_words_without_stop_word(self, repetition_words: dict) -> float:
+        '''
+        Function to evaluate the repetition words without stop word. This function will return
+        the IELTS band based on the repetition words. The repetition words will be calculated
+        based on the repetition words without stop word. 
+        '''
         # Calculate the repetition rate
         repetition_rate = round(sum(repetition_words.values()) / len(repetition_words) if len(repetition_words) > 0 else 0, 3)
 
@@ -318,6 +404,10 @@ class LexicalService:
 
     # MARK: EvaluateLexicalCollocationScore
     def _evaluate_lexical_collocation_score(self, lexical_collocation_score: int) -> float:
+        '''
+        Function to evaluate the lexical collocation score. This function will return
+        the IELTS band based on the lexical collocation score. 
+        '''
         # Return the IELTS band based on lexical collocation score
         if lexical_collocation_score >= 100: return 9
         elif lexical_collocation_score >= 95: return 8
@@ -329,154 +419,214 @@ class LexicalService:
         elif lexical_collocation_score >= 15: return 2
         else: return 1
 
-    # MARK: Score
-    def score(self, transcribe: str) -> tuple[float, str]:
-        # If the transcribe is empty or words is empty
-        if transcribe == '' or not transcribe: 
-            return (0, 'Not detect a speech.')
+    # MARK: Evaluation
+    def evaluate_lexical(self, transcribe: str) -> EvEvaluationModel:
+        ''' 
+        Evaluates the lexical of the transcribe. The lexical evaluation will be done by using
+        prediction model. The prediction model will classify the input text into a CEFR band.
+        The model will classify the input text into a CEFR band. The model will also evaluate
+        the lexical sophistication, lexical diversity, lexical collocation using fill masked 
+        model, and repetition words in the transcription. The model will return the IELTS band 
+        score and feedback.
+        '''
+        try:
+            # If the transcribe is empty or words is empty
+            if transcribe == '' or not transcribe: 
+                # Return ielts band 0
+                return EvEvaluationModel(
+                    ielts_band = 0,
+                    readable_feedback = f'''
+                        <p><strong>Feedback:</strong></p>
+                        <p>Your transcription is empty. Please provide a valid transcription.</p>
+                    ''',
+                    feedback_information = {
+                        'cefr_classification': [],
+                        'lexical_cefr_classification_band': 0,
+                        'lexical_sophistication': {},
+                        'lexical_sophistication_ielts_band': 0,
+                        'lexical_diversity_ielts_band': 0,
+                        'repetition_words': {},
+                        'repetition_words_ielts_band': 0,
+                        'lexical_collocation_prediction': {},
+                        'lexical_collocation_score': 0,
+                        'lexical_collocation_ielts_band': 0,
+                        'original_sentence': [],
+                    }
+                )
 
-        # Define a text to save the information evaluation of the dictionary
-        feedback = ''
+            # Process the transcription using SpaCy
+            doc = spacy_service.process_document(transcribe)
 
-        # Process the transcription using SpaCy
-        doc = spacy_service.process_document(transcribe)
+            # Define variable to save the cefr classification result
+            cefr_classification = []
 
-        # Define variable to save the cefr classification result
-        cefr_classification = []
+            # Loop through sentence result from SpaCy
+            for sent in doc.sents:
+                # Predict the CEFR level
+                cefr_band = self._evaluate_cefr_band_classification(sent.text)
 
-        # Add the total words to the feedback
-        feedback += f'Candidate have speech transcribe, '
+                # Predict cefr level each sentence
+                cefr_classification.append(cefr_band)
 
-        # Define variable to save the feebcak cefr classification
-        feedback_cefr_classification = []
+            # Calculate the final band of cefr classification
+            lexical_cefr_classification_band = EvRoundedIELTSBand(np.mean(cefr_classification)).rounded_band
 
-        # Loop through sentence result from SpaCy
-        for index, sent in enumerate(doc.sents):
-            # Predict the CEFR level
-            cefr_band, cefr_level = self._evaluate_cefr_band_classification(sent.text)
+            # Tokenize the word using word freq
+            words_tokens = wordfreq_tokenize(transcribe, 'en')
 
-            # Predict cefr level each sentence
-            cefr_classification.append(cefr_band)
+            # Get the lexical sophistication information
+            lexical_sophistication = self._get_lexical_sophistication(words_tokens)
 
-            # Add to the feedback
-            feedback_cefr_classification.append(f'sentence [{sent.text}] with mapping ti CEFR level is {cefr_level}')
+            # Calculate the words repetition in the words token
+            words_repetition = [word for word in words_tokens if words_tokens.count(word) > 1]
 
-        # Add cefr classification feedback to the feedback
-        feedback += ', '.join(feedback_cefr_classification) + '. '
+            # Calculate the word repetition score
+            words_repetition_score = round(len(words_repetition) / len(words_tokens), 3)
 
-        # Calculate the final band of cefr classification
-        lexical_cefr_classification_band = EvRoundedIELTSBand(np.mean(cefr_classification)).rounded_band
+            # Get the lexical sophistication band
+            lexical_sophistication_ielts_band = self._evaluate_lexical_sophistication(lexical_sophistication, words_repetition_score, len(words_tokens))
 
-        # Add the final band of cefr classification to the feedback
-        feedback += f'Get final IELTS band based of our system and cefr classification is {lexical_cefr_classification_band}. '
+            # Rounded to ielts band
+            lexical_sophistication_ielts_band = EvRoundedIELTSBand(lexical_sophistication_ielts_band).rounded_band
 
-        # Tokenize the word using word freq
-        words_tokens = wordfreq_tokenize(transcribe, 'en')
+            # Calculate the lexical diversity
+            lexical_diversity_ielts_band = self._evaluate_lexical_diversity(transcribe)
 
-        # Get the lexical sophistication information
-        lexical_sophistication = self._get_lexical_sophistication(words_tokens)
+            # Get repetition words in a transcribe
+            repetition_words = self._get_repetition_words_without_stop_word(transcribe)
 
-        # Add the lexical sophistication information to the feedback
-        feedback += f'Get lexical sophistication information is, '
+            # Get list of repetition words
+            repetition_words_list = list(repetition_words.keys())
 
-        # Loop through the lexical sophistication information
-        for key, value in lexical_sophistication.items():
-            # Check if have value
-            if value:
-                # Get the string of the words in value
-                words_value = ', '.join(set(value))
+            # Evaluate the repetition words
+            repetition_words_ielts_band = self._evaluate_repetition_words_without_stop_word(repetition_words)
 
-                # Add the lexical sophistication information to the feedback
-                feedback += f'{key}: {words_value}, '
-            else:
-                # Add the lexical sophistication information to the feedback
-                feedback += f'{key}: None, '
+            # Get the lexical collocation prediction
+            lexical_collocation_prediction = self._get_lexical_collocation_prediction(transcribe)
 
-        # Calculate the words repetition in the words token
-        words_repetition = [word for word in words_tokens if words_tokens.count(word) > 1]
+            # Get the lexical collocation score
+            lexical_collocation_score = self._get_lexical_collocation_score(lexical_collocation_prediction)
 
-        # Calculate the word repetition score
-        words_repetition_score = round(len(words_repetition) / len(words_tokens), 3)
+            # Evaluate the lexical collocation score
+            lexical_collocation_ielts_band = self._evaluate_lexical_collocation_score(lexical_collocation_score)
 
-        # Get the lexical sophistication band
-        lexical_sophistication_ielts_band = self._evaluate_lexical_sophistication(lexical_sophistication, words_repetition_score, len(words_tokens))
+            # Define the original sentence
+            original_sentence_list = []
 
-        # Rounded to ielts band
-        lexical_sophistication_ielts_band = EvRoundedIELTSBand(lexical_sophistication_ielts_band).rounded_band
+            # Loop through the word tokens
+            for word in words_tokens:
+                # Define flag of the word
+                flag = 0
 
-        # Add the lexical sophistication band
-        feedback += f'Get final IELTS band based of our system and lexical sophistication is {lexical_sophistication_ielts_band}. '
+                # If the word is in lexical sophistication advanced
+                if word in lexical_sophistication['advanced']:
+                    # Set the flag to 0
+                    flag = 1
 
-        # Calculate the lexical diversity
-        lexical_diversity_ielts_band = self._evaluate_lexical_diversity(transcribe)
+                # If the word is in repetition words
+                if word in repetition_words_list:
+                    # Set the flag to 0
+                    flag = 2
 
-        # Add the lexical diversity to the feedback
-        feedback += f'Get final IELTS band based of our system and lexical diversity is {lexical_diversity_ielts_band}. '
+                # Add the word to the original sentence
+                original_sentence_list.append((word, flag))
 
-        # Get repetition words in a transcribe
-        repetition_words = self._get_repetition_words_without_stopword(transcribe)
+            # Define variable to save the html feedback
+            html_original_sentence = ''
+            html_correction = ''
 
-        # Evaluate the repetition words
-        repetition_words_ielts_band = self._evaluate_repetition_words_without_stopword(repetition_words)
+            # Loop through the original sentence list
+            for word, flag in original_sentence_list:
+                # If the flag is 0
+                if flag == 0:
+                    # Add the word to the html original sentence
+                    html_original_sentence += f'{word} '
+                # If the flag is 1
+                elif flag == 1:
+                    # Add the word to the html original sentence
+                    html_original_sentence += f"<span style=\"color:green;\">{word}</span> "
+                else:
+                    # Add the word to the html original sentence
+                    html_original_sentence += f"<span style=\"color:red;\">{word}</span> "
 
-        # Get the word and counter of the word repetition
-        repetition_words_counter = ', '.join([f'{word}: {count}' for word, count in repetition_words.items()])
+            # Strip the html original sentence
+            html_original_sentence = html_original_sentence.strip()
 
-        # Add repetition words in a transcribe to the feedback
-        feedback += f'Fined repetition words in a transcribe is {repetition_words_counter}. '
+            # Check if the lexical sophistication `advanced` is not empty and repetition words list is not empty
+            if lexical_sophistication['advanced'] and repetition_words_list:
+                # Change the html correction 
+                html_correction_lexical_sophistication = ', '.join([
+                    f"<span style=\"color:green;\">{word}</span>" for word in lexical_sophistication['advanced']
+                ])
 
-        # Add the repetition words ielts band to the feedback
-        feedback += f'Get final IELTS band based of our system and repetition words is {repetition_words_ielts_band}. '
+                # Add li tag to the html correction
+                html_correction = f"<li><p>Advance words: {html_correction_lexical_sophistication}</p></li>"
 
-        # Get the lexical collocation prediction
-        lexical_collocation_prediction = self._get_lexical_collocation_prediction(transcribe)
+                # Add the repetition words to the html correction
+                html_correction_repetition_words += ', '.join([
+                    f"<span style=\"color:red;\">{word}</span>" for word in repetition_words_list
+                ])
 
-        # Get the lexical collocation score
-        lexical_collocation_score = self._get_lexical_collocation_score(lexical_collocation_prediction)
+                # Add li tag to the html correction
+                html_correction = f"<li><p>Repetition words: {html_correction_repetition_words}</p></li>"
 
-        # Ecaluate the lexical collocation score
-        lexical_collocation_ielts_band = self._evaluate_lexical_collocation_score(lexical_collocation_score)
+            # Define variable for final html feedback
+            final_html_feedback = f'<p><strong>Original Sentence:</strong></p><p>{' '.join(html_original_sentence)}</p>'
 
-        # Define variable to check the collocation
-        feedback_lexical_collocation = []
+            # Add the correction sentence if it exists
+            if html_correction != '':
+                final_html_feedback += f"<p><strong>Correction:</strong></p><ul>{html_correction}</ul>"
 
-        # Loop through the prediction
-        for result in lexical_collocation_prediction:
-            # Decode the result
-            is_correct, _, _, sentence = result
+            # Add div in the feedback
+            final_html_feedback = f'<div>{final_html_feedback}</div>'
 
-            # Check if not correct
-            if not is_correct:
-                # Add the sentence to the feedback
-                feedback_lexical_collocation.append(f'[{sentence}]')
+            # Weighted average
+            lexical_score = (
+                (lexical_cefr_classification_band * 0.25) +
+                (lexical_sophistication_ielts_band * 0.25) +
+                (lexical_diversity_ielts_band * 0.2) +
+                (repetition_words_ielts_band * 0.2) +
+                (lexical_collocation_ielts_band * 0.1)
+            )
 
-        # Check if get feedback
-        if feedback_lexical_collocation:
-            # Add the lexical collocation prediction to the feedback
-            feedback += f'Get some missing collocation in '
-            feedback += ', '.join(set(feedback_lexical_collocation))
-            feedback += '. '
+            # Rounded to ielts band
+            final_ielts_band = EvRoundedIELTSBand(lexical_score).rounded_band
 
-        # Add the lexical collocation ielts band in the feedback
-        feedback += f'Get final IELTS band based of our system and lexical collocation is {lexical_collocation_ielts_band}. '
+            # Return the evaluation model
+            return EvEvaluationModel(
+                ielts_band = final_ielts_band,
+                readable_feedback = final_html_feedback,
+                feedback_information = {
+                    'cefr_classification': cefr_classification,
+                    'lexical_cefr_classification_band': lexical_cefr_classification_band,
+                    'lexical_sophistication': lexical_sophistication,
+                    'lexical_sophistication_ielts_band': lexical_sophistication_ielts_band,
+                    'lexical_diversity_ielts_band': lexical_diversity_ielts_band,
+                    'repetition_words': repetition_words,
+                    'repetition_words_ielts_band': repetition_words_ielts_band,
+                    'lexical_collocation_prediction': lexical_collocation_prediction,
+                    'lexical_collocation_score': lexical_collocation_score,
+                    'lexical_collocation_ielts_band': lexical_collocation_ielts_band,
+                    'original_sentence': original_sentence_list,
+                }
+            )
+        
+        except EvException as error:
+            # Raise the exception
+            raise error
+        
+        except Exception as error:
+            # Define the error message
+            message = f'Error evaluating lexical: {str(error)}'
 
-        # Weighted average
-        lexical_score = (
-            (lexical_cefr_classification_band * 0.25) +
-            (lexical_sophistication_ielts_band * 0.25) +
-            (lexical_diversity_ielts_band * 0.2) +
-            (repetition_words_ielts_band * 0.2) +
-            (lexical_collocation_ielts_band * 0.1)
-        )
-
-        # Rounde to ielts band
-        lexical_score = EvRoundedIELTSBand(lexical_score).rounded_band
-
-        # Add the lexical score to the feedback
-        feedback += f'Get final IELTS band based of our system and lexical score is {lexical_score}.'
-
-        # Return the feedback
-        return (lexical_score, feedback)
+            # Raise an exception with the error message
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
     
 # MARK: LexicalService
 # Create the lexical service
