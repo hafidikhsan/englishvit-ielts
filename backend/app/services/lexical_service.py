@@ -560,7 +560,7 @@ class LexicalService:
                 ])
 
                 # Add li tag to the html correction
-                html_correction = f"<li><p>Advance words: {html_correction_lexical_sophistication}</p></li>"
+                html_correction += f"<li><p>Advance words: {html_correction_lexical_sophistication}</p></li>"
 
                 # Add the repetition words to the html correction
                 html_correction_repetition_words = ', '.join([
@@ -568,7 +568,7 @@ class LexicalService:
                 ])
 
                 # Add li tag to the html correction
-                html_correction = f"<li><p>Repetition words: {html_correction_repetition_words}</p></li>"
+                html_correction += f"<li><p>Repetition words: {html_correction_repetition_words}</p></li>"
 
             # Define variable for final html feedback
             final_html_feedback = f"<p><strong>Original Sentence:</strong></p><p>{html_original_sentence}</p>"
