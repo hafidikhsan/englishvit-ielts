@@ -119,10 +119,10 @@ class ASRService:
                 # Tagging the token
                 pos_tags = pos_tag(tokens)
 
-                # Get start, end, confidance data
+                # Get start, end, confidence data
                 start = word['start']
                 end = word['end']
-                confidance = word['confidence']
+                confidence = word['confidence']
 
                 # Loop throught the pos tags
                 for pos_tag_data in pos_tags:
@@ -130,8 +130,8 @@ class ASRService:
                     word_with_tag.append({
                         'text': pos_tag_data[0],
                         'start': start,
-                        'end':end,
-                        'confidance': confidance,
+                        'end': end,
+                        'confidence': confidence,
                         'tag': pos_tag_data[1],
                     })
 

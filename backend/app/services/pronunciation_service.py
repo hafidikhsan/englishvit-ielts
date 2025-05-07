@@ -49,11 +49,6 @@ class PronunciationService:
             phoneme_count: int, 
             phoneme_error_count: int, 
             missing_phoneme_count: int,
-            word_count: int, 
-            word_error_count: int, 
-            missing_word_count: int,
-            mean_duration: float, 
-            std_duration: float,
         ) -> int:
         '''
         Maps pronounce evaluation metrics to an IELTS band.
@@ -62,44 +57,35 @@ class PronunciationService:
         ev_logger.info(f'Phoneme Count: {phoneme_count}')
         ev_logger.info(f'Phoneme Error Count: {phoneme_error_count}')
         ev_logger.info(f'Missing Phoneme Count: {missing_phoneme_count}')
-        ev_logger.info(f'Word Count: {word_count}')
-        ev_logger.info(f'Word Error Count: {word_error_count}')
-        ev_logger.info(f'Missing Word Count: {missing_word_count}')
-        ev_logger.info(f'Mean Duration: {mean_duration}')
-        ev_logger.info(f'Std Duration: {std_duration}')
 
         # Adjust phoneme and word counts to include missing ones
         total_phoneme_count = phoneme_count + missing_phoneme_count
-        total_word_count = word_count + missing_word_count
 
         # Log the total counts
         ev_logger.info(f'Total Phoneme Count: {total_phoneme_count}')
-        ev_logger.info(f'Total Word Count: {total_word_count}')
 
         # Calculate error rates
         phoneme_error_rate = (phoneme_error_count + missing_phoneme_count) / total_phoneme_count if total_phoneme_count > 0 else 1
-        word_error_rate = (word_error_count + missing_word_count) / total_word_count if total_word_count > 0 else 1
 
         # Log the error rates
         ev_logger.info(f'Phoneme Error Rate: {phoneme_error_rate}')
-        ev_logger.info(f'Word Error Rate: {word_error_rate}')
 
         # Define thresholds for IELTS bands
-        if phoneme_error_rate < 0.05 and word_error_rate < 0.05:
+        if phoneme_error_rate < 0.05:
             return 9
-        elif phoneme_error_rate < 0.1 and word_error_rate < 0.1:
+        elif phoneme_error_rate < 0.1:
             return 8
-        elif phoneme_error_rate < 0.15 and word_error_rate < 0.15:
+        elif phoneme_error_rate < 0.15:
             return 7
-        elif phoneme_error_rate < 0.2 and word_error_rate < 0.2:
+        elif phoneme_error_rate < 0.2:
             return 6
-        elif phoneme_error_rate < 0.3 and word_error_rate < 0.3:
+        elif phoneme_error_rate < 0.3:
             return 5
-        elif phoneme_error_rate < 0.4 and word_error_rate < 0.4:
+        elif phoneme_error_rate < 0.4:
             return 4
-        elif phoneme_error_rate < 0.5 and word_error_rate < 0.5:
+        elif phoneme_error_rate < 0.5:
             return 3
-        elif phoneme_error_rate < 0.7 and word_error_rate < 0.7:
+        elif phoneme_error_rate < 0.7:
             return 2
         else:
             return 1
@@ -503,11 +489,6 @@ class PronunciationService:
                 phoneme_count,
                 phoneme_error_count,
                 missing_phoneme_count,
-                word_count,
-                word_error_count,
-                missing_word_count,
-                mean_duration,
-                std_duration,
             )
 
             # Calculate the average confidence score from word_timestamp
