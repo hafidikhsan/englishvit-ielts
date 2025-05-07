@@ -447,7 +447,7 @@ class PronunciationService:
                                 has_missing_phonemes = True
 
                         # Get the phoneme base
-                        base = ''.join(c for c in ph_mark if c.isalpha())
+                        base = ''.join(filter(str.isalpha, ph_mark))
 
                         # Add the phoneme data to the word data
                         word_data['phonemes'].append({

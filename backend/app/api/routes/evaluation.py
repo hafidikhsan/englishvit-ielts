@@ -16,7 +16,7 @@ from app.utils.exception import EvException
 from app.models.response import EvResponseModel
 
 # MARK: Evaluation
-@api_bp.route('/evaluation/<str:type>', methods = ['POST'])
+@api_bp.route('/evaluation/<type>', methods = ['POST'])
 def evaluation(type):
     '''
     Function to handle the evaluation process based on the type of evaluation requested.
