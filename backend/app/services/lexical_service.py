@@ -571,7 +571,7 @@ class LexicalService:
                 html_correction = f"<li><p>Repetition words: {html_correction_repetition_words}</p></li>"
 
             # Define variable for final html feedback
-            final_html_feedback = f'<p><strong>Original Sentence:</strong></p><p>{' '.join(html_original_sentence)}</p>'
+            final_html_feedback = f"<p><strong>Original Sentence:</strong></p><p>{html_original_sentence}</p>"
 
             # Add the correction sentence if it exists
             if html_correction != '':
