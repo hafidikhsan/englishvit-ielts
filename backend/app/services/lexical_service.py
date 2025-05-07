@@ -563,7 +563,7 @@ class LexicalService:
                 html_correction = f"<li><p>Advance words: {html_correction_lexical_sophistication}</p></li>"
 
                 # Add the repetition words to the html correction
-                html_correction_repetition_words += ', '.join([
+                html_correction_repetition_words = ', '.join([
                     f"<span style=\"color:red;\">{word}</span>" for word in repetition_words_list
                 ])
 
