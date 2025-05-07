@@ -294,6 +294,9 @@ class GrammarService:
 
                     # Add green span for inserted words
                     html_result.append(f"<span style=\"color:green;\">{' '.join(correction_list[j1:j2])}</span>")
+                else:
+                    # For equal parts, just add the original text
+                    html_result.append(' '.join(transcribe_list[i1:i2]))
 
         # Return the feedback and html feedback
         return (feedbacks, ' '.join(html_result))
@@ -774,15 +777,15 @@ class GrammarService:
         # Analyze feature distribution and provide feedback
         if feature_counts.get('modal', 0) / total_features > 0.5:
             feedback_sentences.append(
-                'You rely heavily on modal verbs. Try incorporating more variety, such as conditional or relative clauses, to enhance your writing.'
+                'You rely heavily on modal verbs. Try incorporating more variety, such as conditional or relative clauses, to enhance your speaking.'
             )
         elif feature_counts.get('conditional', 0) / total_features > 0.5:
             feedback_sentences.append(
-                'You effectively use conditional sentences, which adds depth to your writing. Maintain this strength.'
+                'You effectively use conditional sentences, which adds depth to your speaking. Maintain this strength.'
             )
         elif feature_counts.get('relative', 0) / total_features > 0.5:
             feedback_sentences.append(
-                'You effectively use relative clauses, which enhances the sophistication of your writing. Maintain this strength.'
+                'You effectively use relative clauses, which enhances the sophistication of your speaking. Maintain this strength.'
             )
         else:
             feedback_sentences.append(
@@ -795,7 +798,7 @@ class GrammarService:
 
         # Analyze tense distribution and provide feedback
         if total_tenses == 0:
-            feedback_sentences.append("You did not use any identifiable tenses. Try incorporating a variety of tenses to improve your writing.")
+            feedback_sentences.append("You did not use any identifiable tenses. Try incorporating a variety of tenses to improve your speaking.")
         else:
             # Check if a specific tense dominates
             dominant_tense = max(tense_counts, key=tense_counts.get)
@@ -803,15 +806,15 @@ class GrammarService:
 
             if dominant_ratio > 0.5:
                 feedback_sentences.append(
-                    f"You rely heavily on {dominant_tense.replace('_', ' ').capitalize()} tense. Try incorporating other tenses to add variety and depth to your writing."
+                    f"You rely heavily on {dominant_tense.replace('_', ' ').capitalize()} tense. Try incorporating other tenses to add variety and depth to your speaking."
                 )
             elif len(tense_counts) > 3:
                 feedback_sentences.append(
-                    "You demonstrate a strong range of tenses, which adds depth and precision to your writing. Maintain this strength."
+                    "You demonstrate a strong range of tenses, which adds depth and precision to your speaking. Maintain this strength."
                 )
             else:
                 feedback_sentences.append(
-                    f"You use a mix of tenses, including {', '.join(tense.replace('_', ' ').capitalize() for tense in tense_counts)}. Consider expanding your range of tenses for more dynamic writing."
+                    f"You use a mix of tenses, including {', '.join(tense.replace('_', ' ').capitalize() for tense in tense_counts)}. Consider expanding your range of tenses for more dynamic speaking."
                 )
 
         # Grammar Function Feedback
@@ -820,15 +823,15 @@ class GrammarService:
         # Analyze function distribution and provide feedback
         if len(function_counts) > 1:
             feedback_sentences.append(
-                "You use a variety of sentence functions, which makes your writing more engaging."
+                "You use a variety of sentence functions, which makes your speaking more engaging."
             )
         else:
             feedback_sentences.append(
-                "Consider using a wider range of sentence functions to make your writing more dynamic."
+                "Consider using a wider range of sentence functions to make your speaking more dynamic."
             )
 
         # Combine feedback sentences
-        return ' '.join(feedback_sentences)
+        return '<div>' + ' '.join(feedback_sentences) + '</div>'
 
     # MARK: Evaluation
     def evaluate_grammar(self, transcribe: str) -> EvEvaluationModel:
@@ -1043,7 +1046,7 @@ class GrammarService:
 
                 # Add the correction sentence if it exists
                 if html_sentence_corrections != '':
-                    final_html_feedback += f'<p><strong>Correction:</strong></p><ul>{html_sentence_corrections}</ul>'
+                    final_html_feedback += f"<p><strong>Correction:</strong></p><ul>{''.join(html_sentence_corrections)}</ul>"
 
                 # Add the feedback
                 final_html_feedback += f'<p><strong>Feedback:</strong></p>'
