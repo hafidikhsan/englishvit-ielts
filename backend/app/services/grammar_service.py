@@ -265,7 +265,7 @@ class GrammarService:
                         'original_phrase': ' '.join(transcribe_list[i1:i2]),
                         'corrected_phrase': ' '.join(correction_list[j1:j2]),
                         'message': 'Replace the word [' + ' '.join(transcribe_list[i1:i2]) + '] with [' + ' '.join(correction_list[j1:j2]) + ']',
-                        'html_feedback': f"<li><span style=\"color:red;\">{' '.join(transcribe_list[i1:i2])}</span>: <span style=\"color:green;\">{' '.join(correction_list[j1:j2])}</span></li>",
+                        'html_feedback': f"<li><span style=\"color:red;\">{' '.join(transcribe_list[i1:i2])}</span> : <span style=\"color:green;\">{' '.join(correction_list[j1:j2])}</span></li>",
                     })
 
                     # Add red span for replaced words
@@ -294,9 +294,9 @@ class GrammarService:
 
                     # Add green span for inserted words
                     html_result.append(f"<span style=\"color:green;\">{' '.join(correction_list[j1:j2])}</span>")
-                else:
-                    # For equal parts, just add the original text
-                    html_result.append(' '.join(transcribe_list[i1:i2]))
+            else:
+                # For equal parts, just add the original text
+                html_result.append(' '.join(transcribe_list[i1:i2]))
 
         # Return the feedback and html feedback
         return (feedbacks, ' '.join(html_result))
@@ -831,7 +831,7 @@ class GrammarService:
             )
 
         # Combine feedback sentences
-        return '<div>' + ' '.join(feedback_sentences) + '</div>'
+        return ' '.join(feedback_sentences)
 
     # MARK: Evaluation
     def evaluate_grammar(self, transcribe: str) -> EvEvaluationModel:
@@ -1059,6 +1059,9 @@ class GrammarService:
                     grammar_range_tenses_feedback,
                     grammar_range_function_feedback
                 ) + '</p>'
+
+                # Add div in the feedback
+                final_html_feedback = f'<div>{final_html_feedback}</div>'
 
                 # Return the evaluation model
                 return EvEvaluationModel(
