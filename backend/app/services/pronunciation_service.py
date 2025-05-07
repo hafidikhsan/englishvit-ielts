@@ -66,13 +66,13 @@ class PronunciationService:
         word_error_rate = (word_error_count + missing_word_count) / total_word_count if total_word_count > 0 else 1
 
         # Define thresholds for IELTS bands
-        if phoneme_error_rate < 0.05 and word_error_rate < 0.05 and mean_duration > 0.05 and std_duration < 0.02:
+        if phoneme_error_rate < 0.05 and word_error_rate < 0.05:
             return 9
-        elif phoneme_error_rate < 0.1 and word_error_rate < 0.1 and mean_duration > 0.04 and std_duration < 0.03:
+        elif phoneme_error_rate < 0.1 and word_error_rate < 0.1:
             return 8
-        elif phoneme_error_rate < 0.15 and word_error_rate < 0.15 and mean_duration > 0.03 and std_duration < 0.04:
+        elif phoneme_error_rate < 0.15 and word_error_rate < 0.15:
             return 7
-        elif phoneme_error_rate < 0.2 and word_error_rate < 0.2 and mean_duration > 0.02 and std_duration < 0.05:
+        elif phoneme_error_rate < 0.2 and word_error_rate < 0.2:
             return 6
         elif phoneme_error_rate < 0.3 and word_error_rate < 0.3:
             return 5
@@ -222,23 +222,14 @@ class PronunciationService:
         html_feedback = ''
 
         # Add the original sentence
-        html_feedback += f'''
-            <p><strong>Original Sentence:</strong></p>
-            {original_sentence}
-        '''
+        html_feedback += f'<p><strong>Original Sentence:</strong></p>{original_sentence}'
 
         # Add the correction sentence if it exists
         if correction_sentence != '':
-            html_feedback += f'''
-                <p><strong>Correction:</strong></p>
-                {correction_sentence}
-            '''
+            html_feedback += f'<p><strong>Correction:</strong></p>{correction_sentence}'
 
         # Add the feedback
-        html_feedback += f'''
-            <p><strong>Feedback:</strong></p>
-            <p>{feedback}</p>
-        '''
+        html_feedback += f'<p><strong>Feedback:</strong></p><p>{feedback}</p>'
 
         # Return the HTML feedback
         return '<div>' + html_feedback + '</div>'
@@ -489,11 +480,11 @@ class PronunciationService:
                 word_error_count,
                 missing_word_count,
                 mean_duration,
-                std_duration
+                std_duration,
             )
 
             # Calculate the average confidence score from word_timestamp
-            avg_confidence = np.mean([word['confidence'] for word in words_timestamps if 'confidence' in word])
+            avg_confidence = np.mean([float(word['confidence']) for word in words_timestamps if 'confidence' in word])
 
             # Calculate the confidence-based IELTS band
             confidence_ielts_band = self._map_confidence_to_ielts_band(avg_confidence)
