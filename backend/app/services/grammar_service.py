@@ -1042,7 +1042,7 @@ class GrammarService:
                 ).rounded_band
 
                 # Define variable for final html feedback
-                final_html_feedback = f'<p><strong>Original Sentence:</strong></p><p>{' '.join(html_sentence)}</p>'
+                final_html_feedback = f"<p><strong>Original Sentence:</strong></p><p>{' '.join(html_sentence)}</p>"
 
                 # Add the correction sentence if it exists
                 if html_sentence_corrections != '':
