@@ -34,7 +34,7 @@ def information():
                         title = 'Test structure',
                         content = None,
                         subtitle = 'The test will be conducted in three parts',
-                    ).to_dict(),
+                    ),
                     EvIntroTestStructureContentModel(
                         label = 'Part 1',
                         title = 'Introduction and interviews',
@@ -43,7 +43,7 @@ def information():
                             icon_url = 'icon1.png',
                             text = 'Duration: 4-5 minutes'
                         ),
-                    ).to_dict(),
+                    ),
                     EvIntroTestStructureContentModel(
                         label = 'Part 2',
                         title = 'Individual Long Turn',
@@ -52,7 +52,7 @@ def information():
                             icon_url = 'icon2.png',
                             text = 'Duration: 3-4 minutes'
                         ),
-                    ).to_dict(),
+                    ),
                     EvIntroTestStructureContentModel(
                         label = 'Part 3',
                         title = 'Two-way discussion',
@@ -61,11 +61,11 @@ def information():
                             icon_url = 'icon3.png',
                             text = 'Duration: 3-4 minutes'
                         ),
-                    ).to_dict(),
+                    ),
                     EvIntroBottomContentModel(
                         bottom_text = 'Scoring criteria',
                         information = 'Tap here to see what the AI examiner is actually looking for.',
-                    ).to_dict(),
+                    ),
                 ],
             ).to_dict(),
             EvIntroSectionModel(
@@ -80,7 +80,7 @@ def information():
                             'Just make it flows, avoid "umm, ahh.."',
                         ],
                         icon_url = 'https://example.com/icon.png'
-                    ).to_dict(),
+                    ),
                     EvIntroTestEvaluationContentModel(
                         title = 'Lexical Resource',
                         subtitle = 'Are you using a good mix of words?',
@@ -89,7 +89,7 @@ def information():
                             'Avoid using same vocabularies..',
                         ],
                         icon_url = 'https://example.com/icon.png'
-                    ).to_dict(),
+                    ),
                     EvIntroTestEvaluationContentModel(
                         title = 'Grammatical Range & Accuracy',
                         subtitle = 'Are your sentences accurate and varied?',
@@ -98,7 +98,7 @@ def information():
                             'Show various tenses and structures',
                         ],
                         icon_url = 'https://example.com/icon.png'
-                    ).to_dict(),
+                    ),
                     EvIntroTestEvaluationContentModel(
                         title = 'Pronunciation',
                         subtitle = 'Is it easy to understand what you’re saying?',
@@ -107,11 +107,11 @@ def information():
                             'Focus on clarity, not accent!',
                         ],
                         icon_url = 'https://example.com/icon.png'
-                    ).to_dict(),
+                    ),
                     EvIntroBottomContentModel(
                         bottom_text = 'Let’s start the test!',
                         information = 'No one’s here to grade you harshly. Think of this as your smart practice buddy who knows what IELTS expects.',
-                    ).to_dict(),
+                    ),
                 ],
             ).to_dict(),
             EvIntroSectionModel(
@@ -132,7 +132,7 @@ def information():
                             icon_url = 'icon1.png',
                             text = 'Tip: Use a headset for better clarity!'
                         ),
-                    ).to_dict(),
+                    ),
                     EvIntroTitleContentModel(
                         title = 'Before You Start, Make Sure:',
                         subtitle = None,
@@ -141,11 +141,11 @@ def information():
                             'Your internet is stable.',
                             'You stay on this page during the test.',
                         ],
-                    ).to_dict(),
+                    ),
                     EvIntroBottomContentModel(
                         bottom_text = 'Let’s Go!! 🚀',
-                        information = None,
-                    ).to_dict(),
+                        information = [],
+                    ),
                 ],
             ).to_dict(),
         ]

@@ -30,5 +30,5 @@ class EvIntroTestStructureContentModel:
             'label': self.label,
             'title': self.title,
             'content': self.content,
-            'sub_title': self.subtitle.to_dict(),
+            'subtitle': self.subtitle.to_dict(),
         }
