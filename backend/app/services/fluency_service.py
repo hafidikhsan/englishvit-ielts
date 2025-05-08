@@ -462,7 +462,7 @@ class FluencyService:
         return char_labels
     
     # MARK: BuildHighlightedHtml
-    def _build_highlighted_html(transcription, char_labels):
+    def _build_highlighted_html(self, transcription, char_labels):
         output = ""
         i = 0
         while i < len(transcription):
@@ -757,10 +757,10 @@ class FluencyService:
                     # Check if this feedback is last
                     if index < len(long_pauses) - 1:
                         # Add the comma in the feedback
-                        feedback += ', '
+                        html_feedback += ', '
                     else:
                         # Add the dot in the feedback
-                        feedback += '. '
+                        html_feedback += '. '
 
                 # Check the count of the long pauses
                 if len(long_pauses) < 2:
@@ -848,7 +848,7 @@ class FluencyService:
         
         except Exception as error:
             # Define the error message
-            message = f'Error evaluating lexical: {str(error)}'
+            message = f'Error evaluating fluency: {str(error)}'
 
             # Raise an exception with the error message
             raise EvException(
