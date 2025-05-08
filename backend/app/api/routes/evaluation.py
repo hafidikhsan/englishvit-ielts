@@ -280,10 +280,21 @@ def evaluation(type):
                     }
                 )
             
+            # Get the words
+            words = request.form.get('words')
+
+            # Declare words timestamps
+            words_timestamps = []
+            
+            # Check if words is not empty
+            if words:
+                # Load the words timestamps from JSON
+                words_timestamps = json.loads(words)
+            
             # Evaluate the grammar
             evaluation = fluency_service.evaluate_fluency(
                 transcribe = request.form.get('transcribe'),
-                words = request.form.get('words'),
+                words = words_timestamps,
             )
 
             # Return the evaluation result
