@@ -144,6 +144,7 @@ def information():
                     ),
                     EvIntroBottomContentModel(
                         bottom_text = 'Let’s Go!! 🚀',
+                        information = None,
                     ),
                 ],
             ),
