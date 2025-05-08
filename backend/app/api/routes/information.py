@@ -135,6 +135,7 @@ def information():
                     ),
                     EvIntroTitleContentModel(
                         title = 'Before You Start, Make Sure:',
+                        sub_title = None,
                         content = [
                             'You’ve got a pen & paper ready.',
                             'Your internet is stable.',
