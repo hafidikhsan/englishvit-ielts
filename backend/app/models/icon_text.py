@@ -13,3 +13,13 @@ class EvIconTextModel:
         '''
         self.icon_url = icon_url
         self.text = text
+
+    def to_dict(self):
+        '''
+        Converts the evaluation model to a dictionary format.
+        This method is useful for returning JSON responses in Flask.
+        '''
+        return {
+            'icon_url': self.icon_url,
+            'text': self.text,
+        }

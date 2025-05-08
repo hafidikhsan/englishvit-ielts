@@ -11,7 +11,7 @@ class EvIntroTestStructureContentModel:
             label: str,
             title: str,
             content: str,
-            sub_title: EvIconTextModel,
+            subtitle: EvIconTextModel,
         ):
         '''
         Initializes the EvIntroTestStructureContentModel with the given parameters.
@@ -19,4 +19,16 @@ class EvIntroTestStructureContentModel:
         self.label = label
         self.title = title
         self.content = content
-        self.sub_title = sub_title
+        self.subtitle = subtitle
+
+    def to_dict(self):
+        '''
+        Converts the evaluation model to a dictionary format.
+        This method is useful for returning JSON responses in Flask.
+        '''
+        return {
+            'label': self.label,
+            'title': self.title,
+            'content': self.content,
+            'sub_title': self.subtitle.to_dict(),
+        }

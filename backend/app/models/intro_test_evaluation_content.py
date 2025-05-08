@@ -18,3 +18,15 @@ class EvIntroTestEvaluationContentModel:
         self.subtitle = subtitle
         self.content = content
         self.icon_url = icon_url
+
+    def to_dict(self):
+        '''
+        Converts the evaluation model to a dictionary format.
+        This method is useful for returning JSON responses in Flask.
+        '''
+        return {
+            'title': self.title,
+            'subtitle': self.subtitle,
+            'content': [item.to_dict() for item in self.content],
+            'icon_url': self.icon_url,
+        }

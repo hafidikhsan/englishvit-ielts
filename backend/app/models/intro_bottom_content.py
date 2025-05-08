@@ -14,3 +14,13 @@ class EvIntroBottomContentModel:
         '''
         self.bottom_text = bottom_text
         self.information = information
+
+    def to_dict(self):
+        '''
+        Converts the evaluation model to a dictionary format.
+        This method is useful for returning JSON responses in Flask.
+        '''
+        return {
+            'bottom_text': self.bottom_text,
+            'information': self.information,
+        }

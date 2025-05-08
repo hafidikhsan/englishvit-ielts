@@ -20,3 +20,15 @@ class EvIntroTestAudioContentModel:
         self.mic_button = mic_button
         self.speaker_button = speaker_button
         self.tips = tips
+
+    def to_dict(self):
+        '''
+        Converts the EvIntroTestAudioContentModel to a dictionary format.
+        This method is useful for returning JSON responses in Flask.
+        '''
+        return {
+            'title': self.title,
+            'mic_button': self.mic_button.to_dict(),
+            'speaker_button': self.speaker_button.to_dict(),
+            'tips': self.tips.to_dict(),
+        }
