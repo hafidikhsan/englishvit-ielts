@@ -1,4 +1,5 @@
-# Import dependency
+# MARK: Import 
+# Dependency
 import datetime
 import torch
 import numpy as np
@@ -7,21 +8,29 @@ from transformers import (
     AutoModelForTokenClassification,
 )
 
-# Import modules
+# Modules
 from config import EvIELTSConfig
 from app.utils.exception import EvException
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
+from app.models.evaluation import EvEvaluationModel
 from app.utils.logger import ev_logger
 
 # MARK: FluencyService
 class FluencyService:
     '''
-    A class to manage all the fluency IELTS assessment services. This
-    class will calculate the fluency score, the IELTS band, feedback.
+    FluencyService class is responsible for evaluating the fluency of the speech.
+    It uses pre-trained models to detect filled pauses, explicit editing terms,
+    discourse markers, coordinating conjunctions, and restart words.
+    The class provides methods to download the models, check their availability,
+    evaluate the speech rate, long pauses, and token classification.
+    It also provides a method to score the fluency based on the evaluation results
+    then return the final IELTS band score and feedback.
     '''
-    # MARK: Init
+    # MARK: Properties
     def __init__(self):
-        # Class properties
+        '''
+        Initializes the FluencyService with the given parameters.
+        '''
         self.filled_pauses_model_name = EvIELTSConfig.fluency_filled_pauses_model_name
         self.filled_pauses_tokenizer = None
         self.filled_pauses_model = None
@@ -51,6 +60,9 @@ class FluencyService:
 
     # MARK: StartDownloadModel
     def _start_download_model(self, model_names: dict):
+        '''
+        Start download the model from Hugging Face.
+        '''
         ev_logger.info(f'Initiate to start download models ...')
 
         # Loop through the model names
@@ -64,6 +76,9 @@ class FluencyService:
 
     # MARK: GetModel
     def _get_model(self, key_model: str, model_name: str):
+        '''
+        Get the model from Hugging Face based on the model name and key model.
+        '''
         try:
             ev_logger.info(f'Starting download {model_name} ...')
 
@@ -73,7 +88,7 @@ class FluencyService:
             # Get the model
             model = AutoModelForTokenClassification.from_pretrained(model_name, token = EvIELTSConfig.hugging_face_api_key)
 
-            ev_logger.info(f'Successfuly download {model_name} √')
+            ev_logger.info(f'Successfully download {model_name} √')
 
             # Update the model based on key model
             if key_model == 'filled_pauses_model':
@@ -81,37 +96,40 @@ class FluencyService:
                 self.filled_pauses_model = model
                 self.filled_pauses_tokenizer = tokenizer
 
-                ev_logger.info(f'Successfuly update {model_name} √')
+                ev_logger.info(f'Successfully update {model_name} √')
             elif key_model == 'explicit_editing_terms_model':
                 # Update the explicit editing terms model and tokenizer
                 self.explicit_editing_terms_model = model
                 self.explicit_editing_terms_tokenizer = tokenizer
 
-                ev_logger.info(f'Successfuly update {model_name} √')
+                ev_logger.info(f'Successfully update {model_name} √')
             elif key_model == 'discourse_markers_model':
                 # Update the discourse markers model and tokenizer
                 self.discourse_markers_model = model
                 self.discourse_markers_tokenizer = tokenizer
 
-                ev_logger.info(f'Successfuly update {model_name} √')
+                ev_logger.info(f'Successfully update {model_name} √')
             elif key_model == 'coordinating_conjunctions_model':
                 # Update the coordinating conjunctions model and tokenizer
                 self.coordinating_conjunctions_model = model
                 self.coordinating_conjunctions_tokenizer = tokenizer
 
-                ev_logger.info(f'Successfuly update {model_name} √')
+                ev_logger.info(f'Successfully update {model_name} √')
             elif key_model == 'restart_words_model':
                 # Update restart words model and tokenizer
                 self.restart_words_model = model
                 self.restart_words_tokenizer = tokenizer
 
-                ev_logger.info(f'Successfuly update {model_name} √')
+                ev_logger.info(f'Successfully update {model_name} √')
         except Exception as error:
           ev_logger.info(f'Failed to download {model_name} ×')
           ev_logger.info(f'Error: {error}')
 
     # MARK: CheckModel
     def check_model(self):
+        '''
+        Check if the model and tokenizer are ready.
+        '''
         # Filled pauses model and tokenizer
         filled_pauses_model_ready = self.filled_pauses_model is not None and self.filled_pauses_tokenizer is not None
 
@@ -132,37 +150,40 @@ class FluencyService:
 
     # MARK: HealthCheck
     def health_check(self):
+        '''
+        Check the health of the model and tokenizer by returning the status and information of each model and tokenizer.
+        '''
         return {
             'filled_pauses_model_ready': self.filled_pauses_model is not None and self.filled_pauses_tokenizer is not None,
             'filled_pauses_model_name': self.filled_pauses_model_name,
             'filled_pauses_base_model': 'BERT',
             'filled_pauses_model_type': 'AutoModelForTokenClassification',
             'filled_pauses_tokenizer_type': 'AutoTokenizer',
-            'filled_pauses_model_description': 'Detech filled pauses (e.g. Uh, Um, Mm, Hm)',
+            'filled_pauses_model_description': 'Detect filled pauses (e.g. Uh, Um, Mm, Hm)',
             'explicit_editing_terms_model_ready': self.explicit_editing_terms_model is not None and self.explicit_editing_terms_tokenizer is not None,
             'explicit_editing_terms_model_name': self.explicit_editing_terms_model_name,
             'explicit_editing_terms_base_model': 'BERT',
             'explicit_editing_terms_model_type': 'AutoModelForTokenClassification',
             'explicit_editing_terms_tokenizer_type': 'AutoTokenizer',
-            'explicit_editing_terms_model_description': 'Detech explicit editing term (e.g. I mean, Sorry)',
+            'explicit_editing_terms_model_description': 'Detect explicit editing term (e.g. I mean, Sorry)',
             'discourse_markers_model_ready': self.discourse_markers_model is not None and self.discourse_markers_tokenizer is not None,
             'discourse_markers_model_name': self.discourse_markers_model_name,
             'discourse_markers_base_model': 'BERT',
             'discourse_markers_model_type': 'AutoModelForTokenClassification',
             'discourse_markers_tokenizer_type': 'AutoTokenizer',
-            'discourse_markers_model_description': 'Detech discourse markers (e.g. You know, Well)',
+            'discourse_markers_model_description': 'Detect discourse markers (e.g. You know, Well)',
             'coordinating_conjunctions_model_ready': self.coordinating_conjunctions_model is not None and self.coordinating_conjunctions_tokenizer is not None,
             'coordinating_conjunctions_model_name': self.coordinating_conjunctions_model_name,
             'coordinating_conjunctions_base_model': 'BERT',
             'coordinating_conjunctions_model_type': 'AutoModelForTokenClassification',
             'coordinating_conjunctions_tokenizer_type': 'AutoTokenizer',
-            'coordinating_conjunctions_model_description': 'Detech coordinating conjunctions (e.g. And, Or, But)',
+            'coordinating_conjunctions_model_description': 'Detect coordinating conjunctions (e.g. And, Or, But)',
             'restart_words_model_ready': self.restart_words_model is not None and self.restart_words_tokenizer is not None,
             'restart_words_model_name': self.restart_words_model_name,
             'restart_words_base_model': 'BERT',
             'restart_words_model_type': 'AutoModelForTokenClassification',
             'restart_words_tokenizer_type': 'AutoTokenizer',
-            'restart_words_model_description': 'Detech restart words (e.g. I I mean, Yeh Yes)',
+            'restart_words_model_description': 'Detect restart words (e.g. I I mean, Yeh Yes)',
             'time_stamp': datetime.datetime.now()
         }
 
@@ -175,6 +196,9 @@ class FluencyService:
         coordinating_conjunctions_model: str = None,
         restart_words_model: str = None
     ):
+        '''
+        Update the model based on the parameters.
+        '''
         # Define the dictionary of updated model
         updates_model = dict()
 
@@ -199,11 +223,17 @@ class FluencyService:
 
     # MARK: GetWordPerMinutes
     def _get_word_per_minutes(self, total_duration: float, total_words: float) -> float:
+        '''
+        Get the word per minutes based on the total duration and total words.
+        '''
         # Get the word per minutes
         return total_words / ((total_duration if total_duration > 0 else 0) / 60)
 
     # MARK: GetLongPauses
     def _get_long_pauses(self, words: list) -> list:
+        '''
+        Get the long pauses based on the words list.
+        '''
         # Check if list is empty return empty list
         if len(words) == 0: return []
 
@@ -241,8 +271,11 @@ class FluencyService:
 
     # MARK: GetPredictTokenClassification
     def _get_predict_token_classification(self, text: str, model, tokenizer) -> list:
+        '''
+        Get the prediction of the token classification model.
+        '''
         try:
-            # Tokenize the splited input text
+            # Tokenize the split input text
             inputs = tokenizer(
                 text.split(),
                 return_tensors = 'pt',
@@ -273,7 +306,7 @@ class FluencyService:
             # If something went wrong
             raise EvException(
                 f'Failed to predict token classification model: {model}',
-                status_code = 501,
+                status_code = 500,
                 information = {
                     'error': str(error)
                 }
@@ -281,6 +314,9 @@ class FluencyService:
 
     # MARK: GetTimestampFromTokenClassification
     def _get_timestamp_from_token_classification(self, word_asr: list, word_level_predictions: list) -> list:
+        '''
+        Function to get the timestamp from the token classification.
+        '''
         # Define variable to save the timestamp
         timestamp = []
 
@@ -365,9 +401,88 @@ class FluencyService:
 
         # Return the timestamp based on the token classification
         return timestamp
+    
+    # MARK: MatchTokensToSpans
+    def _match_tokens_to_spans(self, transcription, tokens):
+        '''
+        Function to match the tokens to the spans in the transcription.
+        '''
+        # Initialize the list of spans
+        spans = []
+
+        # Initialize the pointer
+        ptr = 0
+
+        # Loop through the tokens
+        for token in tokens:
+            # Get the token lower case
+            token_lower = token.lower()
+            # Skip whitespace
+            while ptr < len(transcription) and transcription[ptr].isspace():
+                ptr += 1
+
+            # Look for token match
+            match_start = ptr
+
+            # Check if the token is in the transcription
+            match_end = match_start + len(token)
+
+            while transcription[match_start:match_end].lower() != token_lower and match_end <= len(transcription):
+                
+                match_start += 1
+                match_end = match_start + len(token)
+            if match_end <= len(transcription):
+                spans.append((match_start, match_end))
+                ptr = match_end
+            else:
+                # Fallback if can't find exact match
+                spans.append((ptr, ptr + len(token)))
+                ptr += len(token)
+        return spans
+    
+    # MARK: CombineSpansAndLabels
+    def _combine_spans_and_labels(self, transcription, token_label_lists):
+        '''
+        Function to combine the spans and labels.
+        '''
+        # Initialize the char_labels list with zeros
+        char_labels = [0] * len(transcription)
+
+        # Loop through the token label lists
+        for token_label_list in token_label_lists:
+            # Get the tokens and labels
+            tokens, labels = zip(*token_label_list)
+
+            # Get the spans from the tokens
+            spans = self._match_tokens_to_spans(transcription, tokens)
+            for (start, end), label in zip(spans, labels):
+                if label == 1:
+                    for i in range(start, end):
+                        char_labels[i] = 1
+        return char_labels
+    
+    # MARK: BuildHighlightedHtml
+    def _build_highlighted_html(transcription, char_labels):
+        output = ""
+        i = 0
+        while i < len(transcription):
+            if char_labels[i] == 1:
+                output += '<span style="color:red">'
+                while i < len(transcription) and char_labels[i] == 1:
+                    output += transcription[i]
+                    i += 1
+                output += '</span>'
+            else:
+                output += transcription[i]
+                i += 1
+
+        return f'<p><strong>Original Sentence:</strong></p><p>{output}</p>'
 
     # MARK: EvaluateSpeechRate
     def _evaluate_speech_rate(self, word_per_minutes: float) -> float:
+        '''
+        Evaluate the speech rate based on the word per minutes.
+        '''
         # Return the IELTS band based on the word per minutes
         if word_per_minutes >= 160: return 9
         elif word_per_minutes >= 140: return 8
@@ -382,6 +497,9 @@ class FluencyService:
 
     # EvaluateLongPauses
     def _evaluate_long_pauses(self, long_pauses_count: int) -> float:
+        '''
+        Evaluate the long pauses based on the long pauses count.
+        '''
         # Return the IELTS band based on long pauses count
         if long_pauses_count < 1: return 9
         elif long_pauses_count < 2: return 8
@@ -396,6 +514,9 @@ class FluencyService:
 
     # MARK: EvaluateTokenClassification
     def _evaluate_token_classification(self, token_classification: list) -> float:
+        '''
+        Evaluate the token classification based on the token classification list.
+        '''
         # Get the count of the token classification pauses
         token_classification_words_count = len(token_classification)
 
@@ -411,285 +532,332 @@ class FluencyService:
         elif token_classification_words_count < 15: return 1
         else: return 0
 
-    # MARK: Score
-    def score(self, transcribe: str, words: list) -> tuple[float, str]:
-        # If the transcribe is empty or words is empty
-        if transcribe == '' or not transcribe or len(words) == 0 or not words: 
-            return (0, 'Not detect a speech.')
+    # MARK: Evaluation
+    def evaluate_fluency(self, transcribe: str, words: list) -> EvEvaluationModel:
+        '''
+        Evaluates the fluency of the speech based on the transcribe and words list.
+        It calculates the speech rate, long pauses, filled pauses, explicit editing terms,
+        discourse markers, coordinating conjunctions, and restart words.
+        It returns the final IELTS band score and feedback.
+        '''
+        try:
+            # If the transcribe is empty or words is empty
+            if transcribe == '' or not transcribe or len(words) == 0 or not words: 
+                # Return ielts band 0
+                return EvEvaluationModel(
+                    ielts_band = 0,
+                    readable_feedback = f'''
+                        <p><strong>Feedback:</strong></p>
+                        <p>Your transcription is empty. Please provide a valid transcription.</p>
+                    ''',
+                    feedback_information = {
+                        'total_words': 0,
+                        'total_duration': 0,
+                        'speech_rate': 0,
+                        'speech_rate_ielts_band': 0,
+                        'long_pauses': [],
+                        'long_pauses_ielts_band': 0,
+                        'filled_paused_predict': [],
+                        'filled_paused_timestamp': [],
+                        'filled_paused_ielts_band': 0,
+                        'explicit_editing_terms_predict': [],
+                        'explicit_editing_terms_timestamp': [],
+                        'explicit_editing_terms_ielts_band': 0,
+                        'discourse_markers_predict': [],
+                        'discourse_markers_timestamp': [],
+                        'discourse_markers_ielts_band': 0,
+                        'coordinating_conjunctions_predict': [],
+                        'coordinating_conjunctions_timestamp': [],
+                        'coordinating_conjunctions_ielts_band': 0,
+                        'restart_words_predict': [],
+                        'restart_words_timestamp': [],
+                        'restart_words_ielts_band': 0,
+                        'char_label': [],
+                    }
+                )
 
-        # Define text to save the information evaluation of the dictionary
-        feedback = ''
+            # Calculate total words
+            total_words = len(transcribe.split())
 
-        # Calculate total words
-        total_words = len(transcribe.split())
+            # Calculate total duration
+            total_duration = np.float64(words[-1]['end']) - np.float64(words[0]['start']) if len(words) > 1 else np.float64(words[0]['end']) - np.float64(words[0]['start'])
 
-        # Add the total words to the feedback
-        feedback += f'Candidate have speech {total_words} words, '
+            # Score the speech rate
+            speech_rate = self._get_word_per_minutes(total_duration, total_words)
 
-        # Calculate total duration
-        total_duration = np.float64(words[-1]['end']) - np.float64(words[0]['start']) if len(words) > 1 else np.float64(words[0]['end']) - np.float64(words[0]['start'])
+            # Evaluate the speech rate
+            speech_rate_ielts_band = self._evaluate_speech_rate(speech_rate)
 
-        # Add the total duration in the feedback
-        feedback += f'total duration {total_duration}, '
+            # Get the long pauses list
+            long_pauses = self._get_long_pauses(words)
 
-        # Score the speech rate
-        speech_rate = self._get_word_per_minutes(total_duration, total_words)
+            # Evaluate the long pauses
+            long_pauses_ielts_band = self._evaluate_long_pauses(len(long_pauses))
 
-        # Add the speech rate in the feedback
-        feedback += f'get the speech rate {speech_rate} word per minutes, '
+            # Predict the filled paused
+            filled_paused_predict = self._get_predict_token_classification(
+                text = transcribe, 
+                model = self.filled_pauses_model, 
+                tokenizer = self.filled_pauses_tokenizer,
+            )
 
-        # Evaluate the speech rate
-        speech_rate_ielts_band = self._evaluate_speech_rate(speech_rate)
+            # Get the timestamp from the filled paused
+            filled_paused_timestamp = self._get_timestamp_from_token_classification(words, filled_paused_predict)
 
-        # Add the speech rate namd in the feedback
-        feedback += f'and get final IELTS band based of our system and speech rate is {speech_rate_ielts_band}. '
+            # Evaluate the filled paused
+            filled_paused_ielts_band = self._evaluate_token_classification(filled_paused_timestamp)
 
-        # Get the long pauses list
-        long_pauses = self._get_long_pauses(words)
+            # Predict explicit editing terms
+            explicit_editing_terms_predict = self._get_predict_token_classification(
+                text = transcribe, 
+                model = self.explicit_editing_terms_model, 
+                tokenizer = self.explicit_editing_terms_tokenizer,
+            )
 
-        # If have long pauses
-        if len(long_pauses) > 0:
-            # Add the long pauses counter
-            feedback += f'Candidate have {len(long_pauses)} long pauses, with the pauses in '
+            # Get the timestamp from the explicit editing terms
+            explicit_editing_terms_timestamp = self._get_timestamp_from_token_classification(words, explicit_editing_terms_predict)
 
-            # Loop through the list
-            for index, (start, end) in enumerate(long_pauses):
-                # Add the time stamp in the feedback
-                feedback += f'{start} to {end}'
+            # Evaluate the explicit editing terms
+            explicit_editing_terms_ielts_band = self._evaluate_token_classification(explicit_editing_terms_timestamp)
 
-                # Check if this feedback is last
-                if index < len(long_pauses) - 1:
-                    # Add the comma in the feedback
-                    feedback += ', '
+            # Predict discourse markers
+            discourse_markers_predict = self._get_predict_token_classification(
+                text = transcribe, 
+                model = self.discourse_markers_model, 
+                tokenizer = self.discourse_markers_tokenizer,
+            )
+
+            # Get the timestamp from the discourse markers
+            discourse_markers_timestamp = self._get_timestamp_from_token_classification(words, discourse_markers_predict)
+            # Evaluate the discourse markers
+            discourse_markers_ielts_band = self._evaluate_token_classification(discourse_markers_timestamp)
+
+            # Predict coordinating conjunctions
+            coordinating_conjunctions_predict = self._get_predict_token_classification(
+                text = transcribe, 
+                model = self.coordinating_conjunctions_model, 
+                tokenizer = self.coordinating_conjunctions_tokenizer,
+            )
+
+            # Get the timestamp from the coordinating conjunctions
+            coordinating_conjunctions_timestamp = self._get_timestamp_from_token_classification(words, coordinating_conjunctions_predict)
+
+            # Evaluate the coordinating conjunctions
+            coordinating_conjunctions_ielts_band = self._evaluate_token_classification(coordinating_conjunctions_timestamp)
+
+            # Predict restart words
+            restart_words_predict = self._get_predict_token_classification(
+                text = transcribe, 
+                model = self.restart_words_model, 
+                tokenizer = self.restart_words_tokenizer,
+            )
+
+            # Get the timestamp from the restart words
+            restart_words_timestamp = self._get_timestamp_from_token_classification(words, restart_words_predict)
+
+            # Evaluate the restart words
+            restart_words_ielts_band = self._evaluate_token_classification(restart_words_timestamp)
+
+            # Get the labeled words based on the token classification
+            char_label = self._combine_spans_and_labels(
+                transcribe, 
+                [filled_paused_predict, explicit_editing_terms_predict, discourse_markers_predict, restart_words_predict]
+            )
+
+            # Get the original sentence feedback
+            html_original_sentence = self._build_highlighted_html(transcribe, char_label)
+
+            # Define html correction feedback
+            html_correction_feedback = ''
+
+            # Check if in the char label have 1 value
+            if 1 in char_label:
+                # Check if have filled paused timestamp
+                if len(filled_paused_timestamp) > 0:
+                    # Aff filled paused timestamp title
+                    html_correction_feedback += '<p><strong>Filled Pauses:</strong></p>'
+                    
+                    # Add ul tag
+                    html_correction_feedback += '<ul>'
+
+                    # Loop through the filled paused timestamp
+                    for word, timestamp in filled_paused_timestamp:
+                        # Add li tag
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+
+                    # Add ul tag
+                    html_correction_feedback += '</ul>'
+
+                # Check if have explicit editing terms timestamp
+                if len(explicit_editing_terms_timestamp) > 0:
+                    # Aff explicit editing terms timestamp title
+                    html_correction_feedback += '<p><strong>Explicit Editing Terms:</strong></p>'
+                    
+                    # Add ul tag
+                    html_correction_feedback += '<ul>'
+
+                    # Loop through the explicit editing terms timestamp
+                    for word, timestamp in explicit_editing_terms_timestamp:
+                        # Add li tag
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+
+                    # Add ul tag
+                    html_correction_feedback += '</ul>'
+
+                # Check if have discourse markers timestamp
+                if len(discourse_markers_timestamp) > 0:
+                    # Aff discourse markers timestamp title
+                    html_correction_feedback += '<p><strong>Discourse Markers:</strong></p>'
+                    
+                    # Add ul tag
+                    html_correction_feedback += '<ul>'
+
+                    # Loop through the discourse markers timestamp
+                    for word, timestamp in discourse_markers_timestamp:
+                        # Add li tag
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+
+                    # Add ul tag
+                    html_correction_feedback += '</ul>'
+
+                # Check if have restart words timestamp
+                if len(restart_words_timestamp) > 0:
+                    # Aff restart words timestamp title
+                    html_correction_feedback += '<p><strong>Restart Words:</strong></p>'
+                    
+                    # Add ul tag
+                    html_correction_feedback += '<ul>'
+
+                    # Loop through the restart words timestamp
+                    for word, timestamp in restart_words_timestamp:
+                        # Add li tag
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+
+                    # Add ul tag
+                    html_correction_feedback += '</ul>'
+
+            # Check if the html correction feedback is not empty
+            if html_correction_feedback != '':
+                # Add the feedback
+                html_correction_feedback = f'<p><strong>Correction:</strong></p>{html_correction_feedback}'
+
+            # Define html feedback
+            html_feedback = ''
+
+            # Evaluate the long pauses
+            if len(long_pauses) > 0:
+                # Add the long pauses title
+                html_feedback += f'You have {len(long_pauses)} long pauses, in'
+                
+                # Loop through the list
+                for index, (start, end) in enumerate(long_pauses):
+                    # Add the time stamp in the feedback
+                    html_feedback += f'{start} to {end}'
+
+                    # Check if this feedback is last
+                    if index < len(long_pauses) - 1:
+                        # Add the comma in the feedback
+                        feedback += ', '
+                    else:
+                        # Add the dot in the feedback
+                        feedback += '. '
+
+                # Check the count of the long pauses
+                if len(long_pauses) < 2:
+                    # Add the feedback
+                    html_feedback += 'This is a normal sign of fluency.'
+                elif len(long_pauses) < 4:
+                    # Add the feedback
+                    html_feedback += 'This is a fair sign of fluency.'
+                elif len(long_pauses) < 6:
+                    # Add the feedback
+                    html_feedback += 'This is a poor sign of fluency.'
                 else:
-                    # Add the dot in the feedback
-                    feedback += '. '
+                    # Add the feedback
+                    html_feedback += 'This is a very poor sign of fluency.'
 
-        # Evaluate the long pauses
-        long_pauses_ielts_band = self._evaluate_long_pauses(len(long_pauses))
+            # Count the disfluency factors
+            disfluency_factors = len(filled_paused_timestamp) + len(explicit_editing_terms_timestamp) + len(discourse_markers_timestamp) + len(coordinating_conjunctions_timestamp) + len(restart_words_timestamp)
 
-        # Add the long pauses namd in the feedback
-        feedback += f'Get final IELTS band based of our system and long pauses count is {long_pauses_ielts_band}. '
+            # Evaluate disfluency factors
+            if disfluency_factors > 0 and disfluency_factors < 2:
+                # Add the feedback
+                html_feedback += 'You have a few disfluency factors, which is a normal sign of fluency.'
+            elif disfluency_factors < 4:
+                # Add the feedback
+                html_feedback += 'You have some disfluency factors, which is a fair sign of fluency. Try to reduce them.'
+            elif disfluency_factors < 6:
+                # Add the feedback
+                html_feedback += 'You have many disfluency factors, which is a poor sign of fluency. Do not use them too much.'
+            else:
+                # Add the feedback
+                html_feedback += 'You have a lot of disfluency factors, which is a very poor sign of fluency and should be avoided. Keep practicing to reduce them.'
 
-        # Predict the filled paused
-        filled_paused_predict = self._get_predict_token_classification(
-            text = transcribe, 
-            model = self.filled_pauses_model, 
-            tokenizer = self.filled_pauses_tokenizer,
-        )
+            # Check if the feedback not empty
+            if html_feedback != '':
+                # Add the feedback
+                html_feedback = f'<p><strong>Feedback:</strong></p><p>{html_feedback}</p>'
 
-        # Get the timestamp from the filled paused
-        filled_paused_timestamp = self._get_timestamp_from_token_classification(words, filled_paused_predict)
+            # Weighted average
+            fluency_score = (
+                (speech_rate_ielts_band * 0.1) +
+                (filled_paused_ielts_band * 0.25) +
+                (explicit_editing_terms_ielts_band * 0.15) +
+                (discourse_markers_ielts_band * 0.15) +
+                (coordinating_conjunctions_ielts_band * 0.05) +
+                (restart_words_ielts_band * 0.1) +
+                (long_pauses_ielts_band * 0.2)
+            )
 
-        # Add the filled pauses data to the feedback
-        feedback += f'Candidate have {len(filled_paused_timestamp)} filled pauses'
+            # Rounded to ielts band
+            final_ielts_band = EvRoundedIELTSBand(fluency_score).rounded_band
 
-        # Check if have filled pauses
-        if len(filled_paused_timestamp) > 0:
-            # Add the feedback
-            feedback += ', with the pauses in '
-
-            # Loop through the list
-            for index, (word, (start, end)) in enumerate(filled_paused_timestamp):
-                # Add the time stamp in the feedback
-                feedback += f'{start} to {end} with the word [{word}]'
-
-                # Check if this feedback is last
-                if index < len(filled_paused_timestamp) - 1:
-                    # Add the comma in the feedback
-                    feedback += ', '
-                else:
-                    # Add the dot in the feedback
-                    feedback += '. '
-        else:
-            # Add the feedback
-            feedback += '. '
-
-        # Evaluate the filled paused
-        filled_paused_ielts_band = self._evaluate_token_classification(filled_paused_timestamp)
-
-        # Add the final filled pauses band in the feedback
-        feedback += f'Get final IELTS band based of our system and filled pauses count is {filled_paused_ielts_band}. '
-
-        # Predict explicit editing terms
-        explicit_editing_terms_predict = self._get_predict_token_classification(
-            text = transcribe, 
-            model = self.explicit_editing_terms_model, 
-            tokenizer = self.explicit_editing_terms_tokenizer,
-        )
-
-        # Get the timestamp from the explicit editing terms
-        explicit_editing_terms_timestamp = self._get_timestamp_from_token_classification(words, explicit_editing_terms_predict)
-
-        # Add the explicit editing term data to the feedback
-        feedback += f'Candidate have {len(explicit_editing_terms_timestamp)} explicit editing terms'
+            # Return the evaluation model
+            return EvEvaluationModel(
+                ielts_band = final_ielts_band,
+                readable_feedback = f'<div>{html_feedback}{html_correction_feedback}{html_original_sentence}</div>',
+                feedback_information = {
+                    'total_words': total_words,
+                    'total_duration': total_duration,
+                    'speech_rate': speech_rate,
+                    'speech_rate_ielts_band': speech_rate_ielts_band,
+                    'long_pauses': long_pauses,
+                    'long_pauses_ielts_band': long_pauses_ielts_band,
+                    'filled_paused_predict': filled_paused_predict,
+                    'filled_paused_timestamp': filled_paused_timestamp,
+                    'filled_paused_ielts_band': filled_paused_ielts_band,
+                    'explicit_editing_terms_predict': explicit_editing_terms_predict,
+                    'explicit_editing_terms_timestamp': explicit_editing_terms_timestamp,
+                    'explicit_editing_terms_ielts_band': explicit_editing_terms_ielts_band,
+                    'discourse_markers_predict': discourse_markers_predict,
+                    'discourse_markers_timestamp': discourse_markers_timestamp,
+                    'discourse_markers_ielts_band': discourse_markers_ielts_band,
+                    'coordinating_conjunctions_predict': coordinating_conjunctions_predict,
+                    'coordinating_conjunctions_timestamp': coordinating_conjunctions_timestamp,
+                    'coordinating_conjunctions_ielts_band': coordinating_conjunctions_ielts_band,
+                    'restart_words_predict': restart_words_predict,
+                    'restart_words_timestamp': restart_words_timestamp,
+                    'restart_words_ielts_band': restart_words_ielts_band,
+                    'char_label': char_label,
+                }
+            )
         
-        # Check if have explicit editing terms 
-        if len(explicit_editing_terms_timestamp) > 0:
-            # Add the feedback
-            feedback += ', with the explicit editing terms in '
+        except EvException as error:
+            # Raise the exception
+            raise error
+        
+        except Exception as error:
+            # Define the error message
+            message = f'Error evaluating lexical: {str(error)}'
 
-            # Loop through the list
-            for index, (word, (start, end)) in enumerate(explicit_editing_terms_timestamp):
-                # Add the time stamp in the feedback
-                feedback += f'{start} to {end} with the word [{word}]'
-
-                # Check if this feedback is last
-                if index < len(explicit_editing_terms_timestamp) - 1:
-                    # Add the comma in the feedback
-                    feedback += ', '
-                else:
-                    # Add the dot in the feedback
-                    feedback += '. '
-        else:
-            # Add the feedback
-            feedback += '. '
-
-        # Evaluate the explicit editing terms
-        explicit_editing_terms_ielts_band = self._evaluate_token_classification(explicit_editing_terms_timestamp)
-
-        # Add the final explicit editing terms band in the feedback
-        feedback += f'Get final IELTS band based of our system and explicit editing terms count is {explicit_editing_terms_ielts_band}. '
-
-        # Predict discourse markers
-        discourse_markers_predict = self._get_predict_token_classification(
-            text = transcribe, 
-            model = self.discourse_markers_model, 
-            tokenizer = self.discourse_markers_tokenizer,
-        )
-
-        # Get the timestamp from the discourse markers
-        discourse_markers_timestamp = self._get_timestamp_from_token_classification(words, discourse_markers_predict)
-
-        # Add the discourse markers data to the feedback
-        feedback += f'Candidate have {len(discourse_markers_timestamp)} discourse markers'
-
-        # Check if have discourse markers
-        if len(discourse_markers_timestamp) > 0:
-            # Add the feedback
-            feedback += ', with the discourse markers in '
-
-            # Loop through the list
-            for index, (word, (start, end)) in enumerate(discourse_markers_timestamp):
-                # Add the time stamp in the feedback
-                feedback += f'{start} to {end} with the word [{word}]'
-
-                # Check if this feedback is last
-                if index < len(discourse_markers_timestamp) - 1:
-                    # Add the comma in the feedback
-                    feedback += ', '
-                else:
-                    # Add the dot in the feedback
-                    feedback += '. '
-        else:
-            # Add the feedback
-            feedback += '. '
-
-        # Evaluate the discourse markers
-        discourse_markers_ielts_band = self._evaluate_token_classification(discourse_markers_timestamp)
-
-        # Add the final discourse markers band in the feedback
-        feedback += f'Get final IELTS band based of our system and discourse markers count is {discourse_markers_ielts_band}. '
-
-        # Predict coordinating conjunctions
-        coordinating_conjunctions_predict = self._get_predict_token_classification(
-            text = transcribe, 
-            model = self.coordinating_conjunctions_model, 
-            tokenizer = self.coordinating_conjunctions_tokenizer,
-        )
-
-        # Get the timestamp from the coordinating conjunctions
-        coordinating_conjunctions_timestamp = self._get_timestamp_from_token_classification(words, coordinating_conjunctions_predict)
-
-        # Add the coordinating conjunctions data to the feedback
-        feedback += f'Candidate have {len(coordinating_conjunctions_timestamp)} coordinating conjunctions'
-
-        # Check if have coordinating conjunctions
-        if len(coordinating_conjunctions_timestamp) > 0:
-            # Add the feedback
-            feedback += ', with the coordinating conjunctions in '
-
-            # Loop through the list
-            for index, (word, (start, end)) in enumerate(coordinating_conjunctions_timestamp):
-                # Add the time stamp in the feedback
-                feedback += f'{start} to {end} with the word [{word}]'
-
-                # Check if this feedback is last
-                if index < len(coordinating_conjunctions_timestamp) - 1:
-                    # Add the comma in the feedback
-                    feedback += ', '
-                else:
-                    # Add the dot in the feedback
-                    feedback += '. '
-        else:
-            # Add the feedback
-            feedback += '. '
-
-        # Evaluate the coordinating conjunctions
-        coordinating_conjunctions_ielts_band = self._evaluate_token_classification(coordinating_conjunctions_timestamp)
-
-        # Add the final coordinating conjunctions band in the feedback
-        feedback += f'Get final IELTS band based of our system and coordinating conjunctions count is {coordinating_conjunctions_ielts_band}. '
-
-        # Predict restart words
-        restart_words_predict = self._get_predict_token_classification(
-            text = transcribe, 
-            model = self.restart_words_model, 
-            tokenizer = self.restart_words_tokenizer,
-        )
-
-        # Get the timestamp from the restart words
-        restart_words_timestamp = self._get_timestamp_from_token_classification(words, restart_words_predict)
-
-        # Add the restart words data to the feedback
-        feedback += f'Candidate have {len(restart_words_timestamp)} restart words'
-
-        # Check if have restart words
-        if len(restart_words_timestamp) > 0:
-            # Add the feedback
-            feedback += ', with the restart words in '
-
-            # Loop through the list
-            for index, (word, (start, end)) in enumerate(restart_words_timestamp):
-                # Add the time stamp in the feedback
-                feedback += f'{start} to {end} with the word [{word}]'
-
-                # Check if this feedback is last
-                if index < len(restart_words_timestamp) - 1:
-                    # Add the comma in the feedback
-                    feedback += ', '
-                else:
-                    # Add the dot in the feedback
-                    feedback += '. '
-        else:
-            # Add the feedback
-            feedback += '. '
-
-        # Evaluate the restart words
-        restart_words_ielts_band = self._evaluate_token_classification(restart_words_timestamp)
-
-        # Add the final restart words band in the feedback
-        feedback += f'Get final IELTS band based of our system and restart words count is {restart_words_ielts_band}. '
-
-        # Weighted average
-        fluency_score = (
-            (speech_rate_ielts_band * 0.1) +
-            (filled_paused_ielts_band * 0.25) +
-            (explicit_editing_terms_ielts_band * 0.15) +
-            (discourse_markers_ielts_band * 0.15) +
-            (coordinating_conjunctions_ielts_band * 0.05) +
-            (restart_words_ielts_band * 0.1) +
-            (long_pauses_ielts_band * 0.2)
-        )
-
-        # Get final fluency band
-        fluency_score = EvRoundedIELTSBand(fluency_score).rounded_band
-
-        # Add the final fluency IELTS band
-        feedback += f'Get final IELTS band based of our system and fluency score is {fluency_score}.'
-
-        # Return final IELTS fluency criteria and the feedback
-        return (fluency_score, feedback)
+            # Raise an exception with the error message
+            raise EvException(
+                message = message,
+                status_code = 500,
+                information = {
+                    'message': message,
+                }
+            )
     
 # MARK: FluencyService
 # Create the fluency service
