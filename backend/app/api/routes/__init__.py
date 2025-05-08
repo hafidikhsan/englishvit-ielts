@@ -8,6 +8,7 @@ api_bp = Blueprint('/api', __name__)
 # Routes
 from app.api.routes.transcribe import *
 from app.api.routes.evaluation import *
+from app.api.routes.information import *
 
 # Modules
 from app.models.response import EvResponseModel
