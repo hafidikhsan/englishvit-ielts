@@ -40,7 +40,7 @@ def information():
                         title = 'Introduction and interviews',
                         content = 'You’ll get asked simple questions about work, hobbies, or where you live. Just answer like you’re chatting with a friend.',
                         sub_title = EvIconTextModel(
-                            icon = 'icon1.png',
+                            icon_url = 'icon1.png',
                             text = 'Duration: 4-5 minutes'
                         ),
                     ),
@@ -49,7 +49,7 @@ def information():
                         title = 'Individual Long Turn',
                         content = 'You’ll get a topic + 1 min to think → then talk for 2 mins nonstop. Feels like a mini monologue — chill and go with the flow!',
                         sub_title = EvIconTextModel(
-                            icon = 'icon2.png',
+                            icon_url = 'icon2.png',
                             text = 'Duration: 3-4 minutes'
                         ),
                     ),
@@ -58,7 +58,7 @@ def information():
                         title = 'Two-way discussion',
                         content = 'Follow-up questions from Part 2. You’ll share your opinions, reasons, and go a bit deeper in thought.',
                         sub_title = EvIconTextModel(
-                            icon = 'icon3.png',
+                            icon_url = 'icon3.png',
                             text = 'Duration: 3-4 minutes'
                         ),
                     ),
@@ -121,15 +121,15 @@ def information():
                     EvIntroTestAudioContentModel(
                         title = 'Check Your Audio First:',
                         mic_button = EvIconTextModel(
-                            icon = 'icon1.png',
+                            icon_url = 'icon1.png',
                             text = 'Check Mic'
                         ),
                         speaker_button = EvIconTextModel(
-                            icon = 'icon1.png',
+                            icon_url = 'icon1.png',
                             text = 'Check Speaker'
                         ),
-                        tips= EvIconTextModel(
-                            icon = 'icon1.png',
+                        tips = EvIconTextModel(
+                            icon_url = 'icon1.png',
                             text = 'Tip: Use a headset for better clarity!'
                         ),
                     ),
@@ -143,7 +143,7 @@ def information():
                     ),
                     EvIntroBottomContentModel(
                         bottom_text = 'Let’s Go!! 🚀',
-                    )
+                    ),
                 ],
             ),
         ]
