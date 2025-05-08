@@ -25,5 +25,5 @@ class EvIntroTitleContentModel:
         return {
             'title': self.title,
             'subtitle': self.subtitle,
-            'content': [item.to_dict() for item in self.content],
+            'content': self.content,
         }

@@ -27,6 +27,6 @@ class EvIntroTestEvaluationContentModel:
         return {
             'title': self.title,
             'subtitle': self.subtitle,
-            'content': [item.to_dict() for item in self.content],
+            'content': self.content,
             'icon_url': self.icon_url,
         }
