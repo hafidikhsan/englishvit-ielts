@@ -32,7 +32,7 @@ def information():
                 content = [
                     EvIntroTitleContentModel(
                         title = 'Test structure',
-                        content = None,
+                        content = [],
                         subtitle = 'The test will be conducted in three parts',
                     ),
                     EvIntroTestStructureContentModel(
@@ -135,7 +135,7 @@ def information():
                     ),
                     EvIntroTitleContentModel(
                         title = 'Before You Start, Make Sure:',
-                        subtitle = None,
+                        subtitle = '',
                         content = [
                             'You’ve got a pen & paper ready.',
                             'Your internet is stable.',
