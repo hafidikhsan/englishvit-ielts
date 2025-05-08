@@ -1,5 +1,6 @@
 # MARK: Import 
 # Dependency
+import re
 import datetime
 import torch
 import numpy as np
@@ -357,8 +358,11 @@ class FluencyService:
                 else:
                     # If the word length not more than 1
                     if len(word_detect) > 0:
+                        # Remove the space in the word detect
+                        word_detect = re.sub(r'\s+([,.!?])\s+', r'\1 ', word_detect)
+
                         # Add the timestamp
-                        timestamp.append((word_detect, (star_detect, end_detect)))
+                        timestamp.append((word_detect.strip(), (star_detect, end_detect)))
 
                     # Reset the flag label
                     word_detect = ''
@@ -377,6 +381,11 @@ class FluencyService:
 
                 # If the pointer reach the end of the word asr
                 if char_pointer_asr >= len(word_asr_text):
+                    # Check if the word detect is not empty
+                    if len(word_detect) > 0:
+                        # Add space to the word detect
+                        word_detect += ' '
+
                     # Reset the pointer
                     pointer_asr += 1
                     char_pointer_asr = 0
@@ -390,6 +399,11 @@ class FluencyService:
 
                 # If the pointer reach the end of the word asr
                 if char_pointer_asr < len(word_asr_text):
+                    # Check if the word detect is not empty
+                    if len(word_detect) > 0:
+                        # Add space to the word detect
+                        word_detect += ' '
+
                     # Reset the pointer
                     pointer_asr += 1
                     char_pointer_asr = 0
@@ -699,7 +713,7 @@ class FluencyService:
                     # Loop through the explicit editing terms timestamp
                     for word, timestamp in explicit_editing_terms_timestamp:
                         # Add li tag
-                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]}s - {timestamp[1]}s)</li>'
 
                     # Add ul tag
                     html_correction_feedback += '</ul>'
@@ -815,7 +829,7 @@ class FluencyService:
             # Return the evaluation model
             return EvEvaluationModel(
                 ielts_band = final_ielts_band,
-                readable_feedback = f'<div>{html_feedback}{html_correction_feedback}{html_original_sentence}</div>',
+                readable_feedback = f'<div>{html_original_sentence}{html_correction_feedback}{html_feedback}</div>',
                 feedback_information = {
                     'total_words': total_words,
                     'total_duration': total_duration,
