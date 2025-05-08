@@ -32,8 +32,8 @@ def information():
                 content = [
                     EvIntroTitleContentModel(
                         title = 'Test structure',
-                        content = 'The test will be conducted in three parts',
-                        sub_title = None,
+                        content = None,
+                        sub_title = 'The test will be conducted in three parts',
                     ),
                     EvIntroTestStructureContentModel(
                         label = 'Part 1',
