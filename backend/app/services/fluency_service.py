@@ -410,8 +410,11 @@ class FluencyService:
 
         # Check if still have the flag label
         if len(word_detect) > 0:
+            # Remove the space in the word detect
+            word_detect = re.sub(r'\s+([,.!?])\s+', r'\1 ', word_detect)
+
             # Add the timestamp
-            timestamp.append((word_detect, (star_detect, end_detect)))
+            timestamp.append((word_detect.strip(), (star_detect, end_detect)))
 
         # Return the timestamp based on the token classification
         return timestamp
@@ -697,7 +700,7 @@ class FluencyService:
                     # Loop through the filled paused timestamp
                     for word, timestamp in filled_paused_timestamp:
                         # Add li tag
-                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]}s - {timestamp[1]}s)</li>'
 
                     # Add ul tag
                     html_correction_feedback += '</ul>'
@@ -729,7 +732,7 @@ class FluencyService:
                     # Loop through the discourse markers timestamp
                     for word, timestamp in discourse_markers_timestamp:
                         # Add li tag
-                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]}s - {timestamp[1]}s)</li>'
 
                     # Add ul tag
                     html_correction_feedback += '</ul>'
@@ -745,7 +748,7 @@ class FluencyService:
                     # Loop through the restart words timestamp
                     for word, timestamp in restart_words_timestamp:
                         # Add li tag
-                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]} - {timestamp[1]})</li>'
+                        html_correction_feedback += f'<li><span style="color:red">{word}</span> in ({timestamp[0]}s - {timestamp[1]}s)</li>'
 
                     # Add ul tag
                     html_correction_feedback += '</ul>'
