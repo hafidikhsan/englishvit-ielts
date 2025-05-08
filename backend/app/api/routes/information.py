@@ -21,12 +21,7 @@ def information():
     '''
     Information route for the test.
     '''
-    return jsonify(EvResponseModel(
-        code = 200,
-        status = 'Success',
-        message = 'Information retrieved successfully',
-        data = [
-            EvIntroSectionModel(
+    first = EvIntroSectionModel(
                 title = 'Let’s get to know the test!',
                 subtitle = 'What’s the IELTS Speaking test like? Let’s break it down so you don’t feel lost when it starts!',
                 content = [
@@ -67,8 +62,9 @@ def information():
                         information = 'Tap here to see what the AI examiner is actually looking for.',
                     ),
                 ],
-            ).to_dict(),
-            EvIntroSectionModel(
+            ).to_dict()
+    
+    second = EvIntroSectionModel(
                 title = 'What Are You Really Judged On?',
                 subtitle = 'There are 4 key things we’re paying attention to. Not to judge — but to help you grow. 😉',
                 content = [
@@ -113,8 +109,9 @@ def information():
                         information = 'No one’s here to grade you harshly. Think of this as your smart practice buddy who knows what IELTS expects.',
                     ),
                 ],
-            ).to_dict(),
-            EvIntroSectionModel(
+            ).to_dict()
+    
+    third = EvIntroSectionModel(
                 title = 'Let’s Start Your IELTS Test!',
                 subtitle = 'Relax — think of it like a casual conversation.',
                 content = [
@@ -147,6 +144,14 @@ def information():
                         information = [],
                     ),
                 ],
-            ).to_dict(),
+            ).to_dict()
+    return jsonify(EvResponseModel(
+        code = 200,
+        status = 'Success',
+        message = 'Information retrieved successfully',
+        data = [
+            first, 
+            second, 
+            third,
         ]
     ).to_dict()), 200, {'ContentType' : 'application/json'}
