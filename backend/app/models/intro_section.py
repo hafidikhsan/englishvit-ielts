@@ -9,6 +9,8 @@ class EvIntroSectionModel:
             title: str,
             subtitle: str,
             content: list,
+            buttonText: str,
+            information: str = None,
         ):
         '''
         Initializes the EvIntroSectionModel with the given parameters.
@@ -16,6 +18,8 @@ class EvIntroSectionModel:
         self.title = title
         self.subtitle = subtitle
         self.content = content
+        self.buttonText = buttonText
+        self.information = information
 
     def to_dict(self):
         '''
@@ -26,4 +30,6 @@ class EvIntroSectionModel:
             'title': self.title,
             'subtitle': self.subtitle,
             'content': [item.to_dict() for item in self.content],
+            'button_text': self.buttonText,
+            'information': self.information,
         }
