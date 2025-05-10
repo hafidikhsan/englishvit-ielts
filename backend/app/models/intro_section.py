@@ -29,7 +29,7 @@ class EvIntroSectionModel:
         return {
             'title': self.title,
             'subtitle': self.subtitle,
-            'content': [item.to_dict() for item in self.content],
+            'content': [item.to_dict() for item in self.content] if self.content else None,
             'button_text': self.buttonText,
             'information': self.information,
         }

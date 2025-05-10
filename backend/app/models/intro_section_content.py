@@ -36,6 +36,6 @@ class EvIntroSectionContentModel:
             'label': self.label,
             'subtitle': self.subtitle,
             'description': self.description,
-            'content': [item.to_dict() for item in self.content],
+            'content': [item.to_dict() for item in self.content] if self.content else None,
             'image_url': self.image_url,
         }
