@@ -578,6 +578,8 @@ class GrammarService:
         # Count total of the sentence
         total = len(grammar_sentence_structures)
 
+        print(f'Grammar Sentence Structures: {total}')
+
         # Calculate the ratio of complex and compound complex
         ratio_complex = (grammar_sentence_structures.count('Complex') + grammar_sentence_structures.count('Compound-Complex')) / total
         ratio_simple = grammar_sentence_structures.count('Simple') / total
@@ -753,11 +755,13 @@ class GrammarService:
         structure_counts = {structure: grammar_range_structure_feedback.count(structure) for structure in set(grammar_range_structure_feedback)}
         total_sentences = len(grammar_range_structure_feedback)
 
-        if structure_counts.get('Simple', 0) / total_sentences > 0.5:
+        print(f'Grammar Sentence Structures: {total_sentences}')
+
+        if (structure_counts.get('Simple', 0) / total_sentences) > 0.5:
             feedback_sentences.append(
                 'You use many simple sentences. Try incorporating more complex or compound-complex sentences to improve variety.'
             )
-        elif structure_counts.get('Complex', 0) / total_sentences > 0.5:
+        elif (structure_counts.get('Complex', 0) / total_sentences) > 0.5:
             feedback_sentences.append(
                 'You use a good number of complex sentences, which enhances the sophistication of your speaking.'
             )
@@ -774,16 +778,18 @@ class GrammarService:
         feature_counts = {feature: grammar_range_feature_feedback.count(feature) for feature in set(grammar_range_feature_feedback)}
         total_features = len(grammar_range_feature_feedback)
 
+        print(f'Grammar Features: {total_features}')
+
         # Analyze feature distribution and provide feedback
-        if feature_counts.get('modal', 0) / total_features > 0.5:
+        if (feature_counts.get('modal', 0) / total_features) > 0.5:
             feedback_sentences.append(
                 'You rely heavily on modal verbs. Try incorporating more variety, such as conditional or relative clauses, to enhance your speaking.'
             )
-        elif feature_counts.get('conditional', 0) / total_features > 0.5:
+        elif (feature_counts.get('conditional', 0) / total_features) > 0.5:
             feedback_sentences.append(
                 'You effectively use conditional sentences, which adds depth to your speaking. Maintain this strength.'
             )
-        elif feature_counts.get('relative', 0) / total_features > 0.5:
+        elif (feature_counts.get('relative', 0) / total_features) > 0.5:
             feedback_sentences.append(
                 'You effectively use relative clauses, which enhances the sophistication of your speaking. Maintain this strength.'
             )
@@ -899,6 +905,8 @@ class GrammarService:
 
                     # Add the html feedback
                     html_sentence.append(grammar_accuracy_html_feedbacks)
+
+                    print(len(transcribe_tokens))
                     
                     # Get the error rate
                     error_rate = self._get_grammar_error_rate(grammar_accuracy_feedbacks_original, len(transcribe_tokens))
