@@ -27,4 +27,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["/bin/bash", "-c", "source activate ielts && gunicorn --bind 0.0.0.0:5000 --workers=5 wsgi:app --timeout 300"]
+CMD ["/bin/bash", "-c", "source activate ielts && gunicorn --bind 0.0.0.0:5000 --preload --workers 2 --threads 2 wsgi:app --timeout 300"]
