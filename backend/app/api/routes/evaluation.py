@@ -12,6 +12,7 @@ from app.api.routes import api_bp
 from app.services.pronunciation_service import pronunciation_service
 from app.services.grammar_service import grammar_service
 from app.services.lexical_service import lexical_service
+from app.services.fluency_service import fluency_service
 
 # Modules
 from app.utils.exception import EvException
@@ -234,7 +235,75 @@ def evaluation(type):
             return jsonify(EvResponseModel(
                 code = 200,
                 status = 'Success',
-                message = 'Grammar evaluation completed successfully',
+                message = 'Lexical evaluation completed successfully',
+                data = evaluation.to_dict(),
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = error.message,
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
+    # MARK: Fluency
+    elif type == 'fluency':
+        try:
+            # Check if the request has a text `transcribe` and `words` field
+            if 'transcribe' not in request.form or 'words' not in request.form:
+                # Define the error message
+                message = 'Invalid request, transcribe and words are required'
+
+                # Throw an exception
+                raise EvException(
+                    message = message,
+                    status_code = 500,
+                    information = {
+                        'message': message,
+                    }
+                )
+            
+            # Get the words
+            words = request.form.get('words')
+
+            # Declare words timestamps
+            words_timestamps = []
+            
+            # Check if words is not empty
+            if words:
+                # Load the words timestamps from JSON
+                words_timestamps = json.loads(words)
+            
+            # Evaluate the grammar
+            evaluation = fluency_service.evaluate_fluency(
+                transcribe = request.form.get('transcribe'),
+                words = words_timestamps,
+            )
+
+            # Return the evaluation result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Fluency evaluation completed successfully',
                 data = evaluation.to_dict(),
             ).to_dict()), 200, {'ContentType' : 'application/json'}
 
