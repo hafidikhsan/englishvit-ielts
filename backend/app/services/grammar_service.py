@@ -578,7 +578,7 @@ class GrammarService:
         # Count total of the sentence
         total = len(grammar_sentence_structures)
 
-        print(f'Grammar Sentence Structures: {total}')
+        ev_logger(f'Grammar Sentence Structures: {total}')
 
         # Calculate the ratio of complex and compound complex
         ratio_complex = (grammar_sentence_structures.count('Complex') + grammar_sentence_structures.count('Compound-Complex')) / total
@@ -755,7 +755,7 @@ class GrammarService:
         structure_counts = {structure: grammar_range_structure_feedback.count(structure) for structure in set(grammar_range_structure_feedback)}
         total_sentences = len(grammar_range_structure_feedback)
 
-        print(f'Grammar Sentence Structures: {total_sentences}')
+        ev_logger(f'Grammar Sentence Structures: {total_sentences}')
 
         if (structure_counts.get('Simple', 0) / total_sentences) > 0.5:
             feedback_sentences.append(
@@ -778,7 +778,7 @@ class GrammarService:
         feature_counts = {feature: grammar_range_feature_feedback.count(feature) for feature in set(grammar_range_feature_feedback)}
         total_features = len(grammar_range_feature_feedback)
 
-        print(f'Grammar Features: {total_features}')
+        ev_logger(f'Grammar Features: {total_features}')
 
         # Analyze feature distribution and provide feedback
         if (feature_counts.get('modal', 0) / total_features) > 0.5:
@@ -906,7 +906,7 @@ class GrammarService:
                     # Add the html feedback
                     html_sentence.append(grammar_accuracy_html_feedbacks)
 
-                    print(len(transcribe_tokens))
+                    ev_logger(len(transcribe_tokens))
                     
                     # Get the error rate
                     error_rate = self._get_grammar_error_rate(grammar_accuracy_feedbacks_original, len(transcribe_tokens))
