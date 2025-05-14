@@ -108,6 +108,8 @@ def evaluation(type):
             # Delete the folder
             shutil.rmtree(corpus_folder_path)
 
+            # Send the result to backend
+
             # Return the evaluation result
             return jsonify(EvResponseModel(
                 code = 200,

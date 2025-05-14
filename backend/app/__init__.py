@@ -22,15 +22,15 @@ def create_app():
     # Enable CORS for all routes
     CORS(app)
 
-    ev_logger.info('Start downloading NLTK models ...')
+    # ev_logger.info('Start downloading NLTK models ...')
 
-    # Download and load the NLTK model
-    nltk.download('punkt_tab')
-    nltk.download('averaged_perceptron_tagger_eng')
-    nltk.download('punkt')
-    nltk.download('stopwords')
+    # # Download and load the NLTK model
+    # nltk.download('punkt_tab')
+    # nltk.download('averaged_perceptron_tagger_eng')
+    # nltk.download('punkt')
+    # nltk.download('stopwords')
 
-    ev_logger.info('NLTK models downloaded successfully √')
+    # ev_logger.info('NLTK models downloaded successfully √')
     
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix = '/api')

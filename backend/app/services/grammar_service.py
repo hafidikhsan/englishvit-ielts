@@ -753,11 +753,11 @@ class GrammarService:
         structure_counts = {structure: grammar_range_structure_feedback.count(structure) for structure in set(grammar_range_structure_feedback)}
         total_sentences = len(grammar_range_structure_feedback)
 
-        if structure_counts.get('Simple', 0) / total_sentences > 0.5:
+        if (structure_counts.get('Simple', 0) / total_sentences) > 0.5:
             feedback_sentences.append(
                 'You use many simple sentences. Try incorporating more complex or compound-complex sentences to improve variety.'
             )
-        elif structure_counts.get('Complex', 0) / total_sentences > 0.5:
+        elif (structure_counts.get('Complex', 0) / total_sentences) > 0.5:
             feedback_sentences.append(
                 'You use a good number of complex sentences, which enhances the sophistication of your speaking.'
             )
@@ -775,21 +775,26 @@ class GrammarService:
         total_features = len(grammar_range_feature_feedback)
 
         # Analyze feature distribution and provide feedback
-        if feature_counts.get('modal', 0) / total_features > 0.5:
-            feedback_sentences.append(
-                'You rely heavily on modal verbs. Try incorporating more variety, such as conditional or relative clauses, to enhance your speaking.'
-            )
-        elif feature_counts.get('conditional', 0) / total_features > 0.5:
-            feedback_sentences.append(
-                'You effectively use conditional sentences, which adds depth to your speaking. Maintain this strength.'
-            )
-        elif feature_counts.get('relative', 0) / total_features > 0.5:
-            feedback_sentences.append(
-                'You effectively use relative clauses, which enhances the sophistication of your speaking. Maintain this strength.'
-            )
+        if total_features > 0:
+            if (feature_counts.get('modal', 0) / total_features) > 0.5:
+                feedback_sentences.append(
+                    'You rely heavily on modal verbs. Try incorporating more variety, such as conditional or relative clauses, to enhance your speaking.'
+                )
+            elif (feature_counts.get('conditional', 0) / total_features) > 0.5:
+                feedback_sentences.append(
+                    'You effectively use conditional sentences, which adds depth to your speaking. Maintain this strength.'
+                )
+            elif (feature_counts.get('relative', 0) / total_features) > 0.5:
+                feedback_sentences.append(
+                    'You effectively use relative clauses, which enhances the sophistication of your speaking. Maintain this strength.'
+                )
+            else:
+                feedback_sentences.append(
+                    'Consider using a mix of grammatical features, such as modal verbs, conditional sentences, and relative clauses, to improve variety.'
+                )
         else:
             feedback_sentences.append(
-                'Consider using a mix of grammatical features, such as modal verbs, conditional sentences, and relative clauses, to improve variety.'
+                'No grammatical features were identified. Try incorporating modal verbs, conditional sentences, or relative clauses to enhance your speaking.'
             )
 
         # Grammar Tense Feedback
