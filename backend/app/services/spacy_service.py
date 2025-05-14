@@ -1,22 +1,23 @@
-# Import dependency
+# MARK: Import 
+# Dependency
 import spacy
 import datetime
 
-# Import modules
+# Modules
 from config import EvIELTSConfig
-from app.utils.exception import EvException
+from app.utils.exception import EvServerException
 from app.utils.logger import ev_logger
 
 # MARK: SpacyService
 class SpacyService:
     '''
     A class to manage all the spacy service. In this service will download
-    and load the spacy model and perfome document analysis to split the
+    and load the spacy model and perform document analysis to split the
     document into sentences.
     '''
-    # MARK: Init
+    # MARK: Properties
     def __init__(self):
-        # Class properties
+        # Properties
         self.model_name = EvIELTSConfig.spacy_model_name
         self.model = None
 
@@ -31,9 +32,9 @@ class SpacyService:
             # Try to load the ASR model
             self.model = spacy.load(model_name)
 
-            ev_logger.info(f'Successfuly download {model_name} √')
+            ev_logger.info(f'Successfully download {model_name} √')
         except Exception as error:
-            ev_logger.info(f'Failed to download {model_name} ×')
+            ev_logger.info(f'Failed to download {model_name} x')
 
     # MARK: CheckModel
     def check_model(self):
@@ -45,12 +46,12 @@ class SpacyService:
             'model_ready': self.model is not None,
             'model_name': self.model_name,
             'model_type': 'Spacy',
-            'tima_stamp': datetime.datetime.now()
+            'timestamp': datetime.datetime.now()
         }
         
     # MARK: UpdateModel
     def update_model(self, model_name: str):
-        # Update the model name propertied
+        # Update the model name properties
         self.model_name = model_name
 
         # Start download new model
@@ -61,9 +62,8 @@ class SpacyService:
         try:
             # If the model is empty
             if self.model is None:
-                raise EvException(
+                raise EvServerException(
                     f'Failed to process document: {document}',
-                    status_code = 501,
                     information = {
                         'error': 'Model is empty'
                     }
@@ -75,24 +75,23 @@ class SpacyService:
             # Return document sentences
             return doc
 
-        except EvException as error:
-            ev_logger.info(f'Failed to process document ×')
+        except EvServerException as error:
+            ev_logger.info(f'Failed to process document x')
 
-            # If the eror is EvException
+            # If the error is EvServerException
             raise error
 
         except Exception as error:
-            ev_logger.info(f'Failed to process document ×')
+            ev_logger.info(f'Failed to process document x')
 
             # If something went wrong
-            raise EvException(
+            raise EvServerException(
                 f'Failed to process document: {document}',
-                status_code = 501,
                 information = {
                     'error': str(error)
                 }
             )
         
-# MARK: SpacyService
+# MARK: SpacyServiceInstance
 # Create the Spacy service instance
 spacy_service = SpacyService()

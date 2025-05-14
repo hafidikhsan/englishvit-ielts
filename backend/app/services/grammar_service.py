@@ -15,10 +15,10 @@ from happytransformer import (
 
 # Modules
 from config import EvIELTSConfig
-from app.utils.exception import EvException
+from app.utils.exception import EvServerException, EvClientException
 from app.services.spacy_service import spacy_service
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
-from app.models.evaluation import EvEvaluationModel
+from app.models.evaluation_model import EvEvaluationModel
 from app.utils.logger import ev_logger
 
 # MARK: GrammarService
@@ -101,7 +101,7 @@ class GrammarService:
 
             ev_logger.info(f'Successfully download {self.open_source_model_name} √')
         except Exception as error:
-          ev_logger.info(f'Failed to download models ×')
+          ev_logger.info(f'Failed to download models x')
           ev_logger.info(f'Error: {error}')
 
     # MARK: CheckModel
@@ -134,7 +134,7 @@ class GrammarService:
             'open_source_model_name': self.open_source_model_name,
             'open_source_base_model': 'T5',
             'open_source_model_description': 'Perform GEC using open source',
-            'time_stamp': datetime.datetime.now()
+            'timestamp': datetime.datetime.now()
         }
         
     # MARK: UpdateModel
@@ -157,9 +157,8 @@ class GrammarService:
         '''
         # Check if the model is valid
         if model not in ['grammarly', 'happy', 'base']:
-            raise EvException(
+            raise EvClientException(
                 f'Failed to change GEC model: {model}',
-                status_code = 500,
                 information = {
                     'error': 'Model is not valid'
                 }
@@ -838,7 +837,7 @@ class GrammarService:
         # Combine feedback sentences
         return ' '.join(feedback_sentences)
 
-    # MARK: Evaluation
+    # MARK: EvaluateGrammar
     def evaluate_grammar(self, transcribe: str) -> EvEvaluationModel:
         '''
         Evaluates the grammar of the given transcription. This function generate the grammar
@@ -1082,7 +1081,7 @@ class GrammarService:
                     }
                 )
             
-        except EvException as error:
+        except EvServerException as error:
             # Raise the exception
             raise error
         
@@ -1091,14 +1090,13 @@ class GrammarService:
             message = f'Error evaluating grammar: {str(error)}'
 
             # Raise an exception with the error message
-            raise EvException(
+            raise EvServerException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
             )
         
-# MARK: GrammarService
-# Create a grammar service instance
+# MARK: GrammarServiceInstance
+# Create the grammar service instance
 grammar_service = GrammarService()

@@ -1,10 +1,12 @@
+# MARK: Import
+# Dependencies
 import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-# MARK: Config
+# MARK: EvIELTSConfig
 class EvIELTSConfig:
     # MARK: Flask
     flask_app = os.getenv('FLASK_APP')

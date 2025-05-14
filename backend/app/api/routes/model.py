@@ -1,578 +1,543 @@
 # MARK: Import
 # Dependencies
-import os
-import json
-import shutil
 from flask import jsonify, request
 
 # Routes
 from app.api.routes import api_bp
 
 # Services
-from app.services.pronunciation_service import pronunciation_service
+from app.services.asr_service import asr_service
+from app.services.spacy_service import spacy_service
 from app.services.grammar_service import grammar_service
 from app.services.lexical_service import lexical_service
 from app.services.fluency_service import fluency_service
-from app.services.overall_feedback_service import overall_feedback_service
 
 # Modules
 from app.utils.exception import EvServerException, EvClientException, EvAPIException
 from app.models.response_model import EvResponseModel
 
-# MARK: Evaluation
-@api_bp.route('/evaluation/<type>', methods = ['POST'])
-def evaluation(type):
+# MARK: Information
+@api_bp.route('/model/<type>', methods = ['GET'])
+def model(type):
     '''
-    Function to handle the evaluation process based on the type of evaluation requested.
+    Information route for setting the model.
     '''
     # Switch case for different evaluation types
     # MARK: Pronunciation
-    if type == 'pronunciation':
-        # A flag to check if the corpus is already saved
-        corpus_folder_path = None
-        
-        try:
-            # Check if the request has files and if the file is present
-            if not request.files or 'file' not in request.files:
-                # Define the error message
-                message = 'Invalid request, audio file is required'
+    if type == 'check':
+        # Check the ASR model
+        asr_model = asr_service.check_model()
+        # Check the Spacy model
+        spacy_model = spacy_service.check_model()
+        # Check the Grammar model
+        grammar_model = grammar_service.check_model()
+        # Check the Lexical model
+        lexical_model = lexical_service.check_model()
+        # Check the Fluency model
+        fluency_model = fluency_service.check_model()
 
-                # Throw an exception
-                raise EvClientException(
-                    message = message,
-                    information = {
-                        'message': message,
-                    }
-                )
-            
-            # Check if the request has a text `transcribe`, `words`, and `test_id` field
-            if 'transcribe' not in request.form or 'words' not in request.form or 'test_id' not in request.form:
-                # Define the error message
-                message = 'Invalid request, transcribe and words are required'
-
-                # Throw an exception
-                raise EvClientException(
-                    message = message,
-                    information = {
-                        'message': message,
-                    }
-                )
-            
-            # Get the audio file from the request
-            audio_file = request.files['file']
-
-            # Get the transcribe
-            transcribe = request.form.get('transcribe')
-            
-            # Get the words
-            words = request.form.get('words')
-
-            # Declare words timestamps
-            words_timestamps = []
-            
-            # Check if words is not empty
-            if words:
-                # Load the words timestamps from JSON
-                words_timestamps = json.loads(words)
-
-            # Get the file name and extension
-            file_name, file_extension = os.path.splitext(audio_file.filename)
-
-            # Define main directory
-            main_directory = '/app/audio'
-
-            # Change corpus folder path
-            corpus_folder_path = os.path.join(main_directory, file_name)
-
-            # Create new directory if it doesn't exist
-            os.makedirs(corpus_folder_path)
-
-            # Get the audio file path
-            audio_file_path = os.path.join(corpus_folder_path, file_name + file_extension)
-
-            # Save the audio file to the server
-            audio_file.save(audio_file_path)
-
-            # Write transcribe text to file
-            with open(os.path.join(corpus_folder_path, f'{file_name}.txt'), 'w') as f:
-                f.write(transcribe)
-
-            # Evaluate the pronunciation
-            evaluation = pronunciation_service.evaluate_pronunciation(
-                corpus_path = corpus_folder_path,
-                transcribe = transcribe,
-                words_timestamps = words_timestamps,
-            )
-
-            # Delete the folder
-            shutil.rmtree(corpus_folder_path)
-
-            # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
-
-            # Return the evaluation result
-            return jsonify(EvResponseModel(
-                code = 200,
-                status = 'Success',
-                message = 'Pronunciation evaluation completed successfully',
-                data = evaluation.to_dict(),
-            ).to_dict()), 200, {'ContentType' : 'application/json'}
-        
-        except EvClientException as error:
-            # Check if the corpus folder is saved and delete it
-            if corpus_folder_path:
-                shutil.rmtree(corpus_folder_path)
-
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Invalid request in pronunciation evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvServerException as error:
-            # Check if the corpus folder is saved and delete it
-            if corpus_folder_path:
-                shutil.rmtree(corpus_folder_path)
-
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Server error in pronunciation evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvAPIException as error:
-            # Check if the corpus folder is saved and delete it
-            if corpus_folder_path:
-                shutil.rmtree(corpus_folder_path)
-
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'API error in pronunciation evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except Exception as error:
-            # Check if the corpus folder is saved and delete it
-            if corpus_folder_path:
-                shutil.rmtree(corpus_folder_path)
-
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = 500,
-                status = 'Error',
-                message = 'Internal server error in pronunciation evaluation',
-                data = {
-                    'error': {
-                        'message': str(error),
-                    },
-                },
-            ).to_dict()), 500, {'ContentType' : 'application/json'}
-        
-    # MARK: Grammar
-    elif type == 'grammar':
-        try:
-            # Check if the request has a text `transcribe` and `test_id` field
-            if 'transcribe' not in request.form or 'test_id' not in request.form:
-                # Define the error message
-                message = 'Invalid request, transcribe and test_id are required'
-
-                # Throw an exception
-                raise EvClientException(
-                    message = message,
-                    information = {
-                        'message': message,
-                    }
-                )
-            
-            # Evaluate the grammar
-            evaluation = grammar_service.evaluate_grammar(
-                transcribe = request.form.get('transcribe'),
-            )
-
-            # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
-
-            # Return the evaluation result
-            return jsonify(EvResponseModel(
-                code = 200,
-                status = 'Success',
-                message = 'Grammar evaluation completed successfully',
-                data = evaluation.to_dict(),
-            ).to_dict()), 200, {'ContentType' : 'application/json'}
-
-        except EvClientException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Invalid request in grammar evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvServerException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Server error in grammar evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvAPIException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'API error in grammar evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except Exception as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = 500,
-                status = 'Error',
-                message = 'Internal server error in grammar evaluation',
-                data = {
-                    'error': {
-                        'message': str(error),
-                    },
-                },
-            ).to_dict()), 500, {'ContentType' : 'application/json'}
-        
-    # MARK: Lexical
-    elif type == 'lexical':
-        try:
-            # Check if the request has a text `transcribe` and `test_id` field
-            if 'transcribe' not in request.form or 'test_id' not in request.form:
-                # Define the error message
-                message = 'Invalid request, transcribe and test_id are required'
-
-                # Throw an exception
-                raise EvClientException(
-                    message = message,
-                    information = {
-                        'message': message,
-                    }
-                )
-            
-            # Evaluate the grammar
-            evaluation = lexical_service.evaluate_lexical(
-                transcribe = request.form.get('transcribe'),
-            )
-
-            # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
-
-            # Return the evaluation result
-            return jsonify(EvResponseModel(
-                code = 200,
-                status = 'Success',
-                message = 'Lexical evaluation completed successfully',
-                data = evaluation.to_dict(),
-            ).to_dict()), 200, {'ContentType' : 'application/json'}
-
-        except EvClientException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Invalid request in lexical evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvServerException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Server error in lexical evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvAPIException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'API error in lexical evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except Exception as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = 500,
-                status = 'Error',
-                message = 'Internal server error in lexical evaluation',
-                data = {
-                    'error': {
-                        'message': str(error),
-                    },
-                },
-            ).to_dict()), 500, {'ContentType' : 'application/json'}
-        
-    # MARK: Fluency
-    elif type == 'fluency':
-        try:
-            # Check if the request has a text `transcribe`, `test_id`, and `words` field
-            if 'transcribe' not in request.form or 'test_id' not in request.form or 'words' not in request.form:
-                # Define the error message
-                message = 'Invalid request, transcribe, test_id, and words are required'
-
-                # Throw an exception
-                raise EvClientException(
-                    message = message,
-                    information = {
-                        'message': message,
-                    }
-                )
-            
-            # Get the words
-            words = request.form.get('words')
-
-            # Declare words timestamps
-            words_timestamps = []
-            
-            # Check if words is not empty
-            if words:
-                # Load the words timestamps from JSON
-                words_timestamps = json.loads(words)
-            
-            # Evaluate the grammar
-            evaluation = fluency_service.evaluate_fluency(
-                transcribe = request.form.get('transcribe'),
-                words = words_timestamps,
-            )
-
-            # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
-
-            # Return the evaluation result
-            return jsonify(EvResponseModel(
-                code = 200,
-                status = 'Success',
-                message = 'Fluency evaluation completed successfully',
-                data = evaluation.to_dict(),
-            ).to_dict()), 200, {'ContentType' : 'application/json'}
-
-        except EvClientException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Invalid request in fluency evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvServerException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Server error in fluency evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvAPIException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'API error in fluency evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except Exception as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = 500,
-                status = 'Error',
-                message = 'Internal server error in fluency evaluation',
-                data = {
-                    'error': {
-                        'message': str(error),
-                    },
-                },
-            ).to_dict()), 500, {'ContentType' : 'application/json'}
-        
-    # MARK: Overall
-    elif type == 'overall':
-        try:
-            # Check if the request has a text `session_id`, `fluency`, `lexical`, `grammar`, and `pronunciation` field
-            if 'session_id' not in request.form or 'fluency' not in request.form or 'lexical' not in request.form or 'grammar' not in request.form or 'pronunciation' not in request.form:
-                # Define the error message
-                message = 'Invalid request session_id, fluency, lexical, grammar, and pronunciation are required'
-
-                # Throw an exception
-                raise EvClientException(
-                    message = message,
-                    information = {
-                        'message': message,
-                    }
-                )
-            
-            # Get the list of fluency, lexical, grammar, and pronunciation evaluations
-            fluency = json.loads(request.form.get('fluency'))
-            lexical = json.loads(request.form.get('lexical'))
-            grammar = json.loads(request.form.get('grammar'))
-            pronunciation = json.loads(request.form.get('pronunciation'))
-            
-            # Evaluate the overall feedback
-            evaluation = overall_feedback_service.evaluate_overall_feedback(
-                fluency = fluency,
-                lexical = lexical,
-                grammar = grammar,
-                pronunciation = pronunciation,
-            )
-
-            # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
-
-            # Return the evaluation result
-            return jsonify(EvResponseModel(
-                code = 200,
-                status = 'Success',
-                message = 'Overall evaluation completed successfully',
-                data = evaluation.to_dict(),
-            ).to_dict()), 200, {'ContentType' : 'application/json'}
-
-        except EvClientException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Invalid request in overall evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvServerException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'Server error in overall evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except EvAPIException as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = error.status_code,
-                status = 'Error',
-                message = 'API error in overall evaluation',
-                data = {
-                    'error': {
-                        'message': error.message,
-                        'information': error.information,
-                    },
-                },
-            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-        
-        except Exception as error:
-            # Return the error message
-            return jsonify(EvResponseModel(
-                code = 500,
-                status = 'Error',
-                message = 'Internal server error in overall evaluation',
-                data = {
-                    'error': {
-                        'message': str(error),
-                    },
-                },
-            ).to_dict()), 500, {'ContentType' : 'application/json'}
-        
-    else:
-        # MARK: InvalidType
-        # Return the error message
+        # Return the result
         return jsonify(EvResponseModel(
-            code = 400,
-            status = 'Error',
-            message = 'Invalid evaluation type',
+            code = 200,
+            status = 'Success',
+            message = 'Model check successful',
             data = {
-                'error': {
-                    'message': 'Invalid evaluation type',
+                'asr': asr_model,
+                'spacy': spacy_model,
+                'grammar': grammar_model,
+                'lexical': lexical_model,
+                'fluency': fluency_model,
+            }
+        ).to_dict()), 200, {'ContentType' : 'application/json'}
+    
+    # MARK: UpdateASR
+    elif type == 'update-asr':
+        try:
+            # Check if the request has a text `model_name` field
+            if 'model_name' not in request.form:
+                # Define the error message
+                message = 'Invalid request, model_name is required'
+
+                # Throw an exception
+                raise EvClientException(
+                    message = message,
+                    information = {
+                        'message': message,
+                    }
+                )
+            
+            # Get the model name from the request
+            model_name = request.form['model_name']
+
+            # Change the ASR model
+            asr_service.update_model(model_name = model_name)
+
+            # Return the result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'ASR model updated successfully',
+                data = {
+                    'model_name': model_name,
                 },
-            },
-        ).to_dict()), 400, {'ContentType' : 'application/json'}
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvClientException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Invalid request in ASR model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvServerException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Server error in ASR model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvAPIException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'API error in ASR model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error in ASR model update',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
+        
+    # MARK: UpdateSpacy
+    elif type == 'update-spacy':
+        try:
+            # Check if the request has a text `model_name` field
+            if 'model_name' not in request.form:
+                # Define the error message
+                message = 'Invalid request, model_name is required'
+
+                # Throw an exception
+                raise EvClientException(
+                    message = message,
+                    information = {
+                        'message': message,
+                    }
+                )
+            
+            # Get the model name from the request
+            model_name = request.form['model_name']
+
+            # Change the Spacy model
+            spacy_service.update_model(model_name = model_name)
+
+            # Return the result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Spacy model updated successfully',
+                data = {
+                    'model_name': model_name,
+                },
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvClientException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Invalid request in spacy model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvServerException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Server error in spacy model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvAPIException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'API error in spacy model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error in spacy model update',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
+        
+    # MARK: UpdateFluency
+    elif type == 'update-fluency':
+        try:
+            # Get the model name from the request
+            filled_pauses_model = request.form.get('filled_pauses_model', None)
+            explicit_editing_terms_model = request.form.get('explicit_editing_terms_model', None)
+            discourse_markers_model = request.form.get('discourse_markers_model', None)
+            coordinating_conjunctions_model = request.form.get('coordinating_conjunctions_model', None)
+            restart_words_model = request.form.get('restart_words_model', None)
+
+            # Change the fluency model
+            fluency_service.update_model(
+                filled_pauses_model = filled_pauses_model,
+                explicit_editing_terms_model = explicit_editing_terms_model,
+                discourse_markers_model = discourse_markers_model,
+                coordinating_conjunctions_model = coordinating_conjunctions_model,
+                restart_words_model = restart_words_model,
+            )
+
+            # Return the result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Fluency model updated successfully',
+                data = {
+                    'filled_pauses_model': filled_pauses_model,
+                    'explicit_editing_terms_model': explicit_editing_terms_model,
+                    'discourse_markers_model': discourse_markers_model,
+                    'coordinating_conjunctions_model': coordinating_conjunctions_model,
+                    'restart_words_model': restart_words_model,
+                },
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvClientException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Invalid request in fluency model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvServerException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Server error in fluency model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvAPIException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'API error in fluency model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error in fluency model update',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
+        
+    # MARK: UpdateGrammar
+    elif type == 'update-grammar':
+        try:
+            # Change the grammar model
+            grammar_service.update_model()
+
+            # Return the result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Grammar model updated successfully',
+                data = {
+                    'model_name': grammar_service.model_name,
+                },
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvClientException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Invalid request in grammar model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvServerException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Server error in grammar model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvAPIException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'API error in grammar model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error in grammar model update',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
+        
+    # MARK: ChangeGrammar
+    elif type == 'change-grammar':
+        try:
+            # Check if the request has a text `model_name` field
+            if 'model_name' not in request.form:
+                # Define the error message
+                message = 'Invalid request, model_name is required'
+
+                # Throw an exception
+                raise EvClientException(
+                    message = message,
+                    information = {
+                        'message': message,
+                    }
+                )
+            
+            # Get the model name from the request
+            model_name = request.form['model_name']
+
+            # Change the grammar model
+            grammar_service.change_gec_model(model = model_name)
+
+            # Return the result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Grammar model change successfully',
+                data = {
+                    'model_name': grammar_service.model_name,
+                },
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvClientException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Invalid request in grammar model change',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvServerException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Server error in grammar model change',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvAPIException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'API error in grammar model change',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error in grammar model change',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
+        
+    # MARK: UpdateLexical
+    elif type == 'update-lexical':
+        try:
+            # Change the lexical model
+            lexical_service.update_model()
+
+            # Return the result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Lexical model updated successfully',
+                data = {
+                    'model_name': lexical_service.model_name,
+                },
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
+
+        except EvClientException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Invalid request in lexical model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvServerException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Server error in lexical model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except EvAPIException as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'API error in lexical model update',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        
+        except Exception as error:
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error in lexical model update',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
+    

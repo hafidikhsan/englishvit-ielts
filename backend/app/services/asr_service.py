@@ -1,12 +1,13 @@
-# Import dependencies
+# MARK: Import
+# Dependencies
 import datetime
 import whisper_timestamped
 from nltk import pos_tag
 from nltk.tokenize import word_tokenize
 
-# Import modules
+# Modules
 from config import EvIELTSConfig
-from app.utils.exception import EvException
+from app.utils.exception import EvServerException
 from app.utils.logger import ev_logger
 
 # MARK: ASRService
@@ -16,9 +17,8 @@ class ASRService:
     and load the ASR model. The ASR model I use custom fine tuned whisper
     model.
     '''
-    # MARK: Init
+    # MARK: Properties
     def __init__(self):
-        # Class properties
         self.model_name = EvIELTSConfig.asr_model_name
         self.model = None
 
@@ -36,9 +36,9 @@ class ASRService:
                 device = 'cpu',
             )
 
-            ev_logger.info(f'Successfuly download {model_name} √')
+            ev_logger.info(f'Successfully download {model_name} √')
         except Exception as error:
-            ev_logger.info(f'Failed to download {model_name} ×')
+            ev_logger.info(f'Failed to download {model_name} x')
             ev_logger.info(f'Error: {error}')
 
     # MARK: CheckModel
@@ -51,7 +51,7 @@ class ASRService:
             'model_ready': self.model is not None,
             'model_name': self.model_name,
             'model_type': 'Whisper',
-            'tima_stamp': datetime.datetime.now()
+            'timestamp': datetime.datetime.now()
         }
 
     # MARK: UpdateModel
@@ -67,9 +67,8 @@ class ASRService:
         try:
             # If the model is empty
             if self.model is None:
-                raise EvException(
+                raise EvServerException(
                     f'Failed to process audio: {audio_file_path}',
-                    status_code = 501,
                     information = {
                         'error': 'Model is empty'
                     }
@@ -102,7 +101,7 @@ class ASRService:
                         # If text is special character, don't add to the words list
                         continue
 
-                    # Add to the words list a word model that contain text, start, end, and confidance
+                    # Add to the words list a word model that contain text, start, end, and confidence
                     words.append(word)
 
             # Get the string of the word transcribe
@@ -124,7 +123,7 @@ class ASRService:
                 end = word['end']
                 confidence = word['confidence']
 
-                # Loop throught the pos tags
+                # Loop through the pos tags
                 for pos_tag_data in pos_tags:
                     # Add to the word with tag list
                     word_with_tag.append({
@@ -135,25 +134,24 @@ class ASRService:
                         'tag': pos_tag_data[1],
                     })
 
-            # Return the transcribe and the words time stampt
+            # Return the transcribe and the words timestamp
             return (transcribe, word_with_tag)
 
-        except EvException as error:
-            # If the eror is EvException
+        except EvServerException as error:
+            # If the error is EvServerException
             raise error
 
         except Exception as error:
-            ev_logger.info(f'Failed to process audio {audio_file_path} ×')
+            ev_logger.info(f'Failed to process audio {audio_file_path} x')
 
             # If something went wrong
-            raise EvException(
+            raise EvServerException(
                 f'Failed to process audio: {audio_file_path}',
-                status_code = 501,
                 information = {
                     'error': str(error)
                 }
             )
         
-# MARK: ASRService
+# MARK: ASRServiceInstance
 # Create the ASR service instance
 asr_service = ASRService()

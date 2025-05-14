@@ -11,9 +11,9 @@ from transformers import (
 
 # Modules
 from config import EvIELTSConfig
-from app.utils.exception import EvException
+from app.utils.exception import EvServerException
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
-from app.models.evaluation import EvEvaluationModel
+from app.models.evaluation_model import EvEvaluationModel
 from app.utils.logger import ev_logger
 
 # MARK: FluencyService
@@ -123,7 +123,7 @@ class FluencyService:
 
                 ev_logger.info(f'Successfully update {model_name} √')
         except Exception as error:
-          ev_logger.info(f'Failed to download {model_name} ×')
+          ev_logger.info(f'Failed to download {model_name} x')
           ev_logger.info(f'Error: {error}')
 
     # MARK: CheckModel
@@ -185,7 +185,7 @@ class FluencyService:
             'restart_words_model_type': 'AutoModelForTokenClassification',
             'restart_words_tokenizer_type': 'AutoTokenizer',
             'restart_words_model_description': 'Detect restart words (e.g. I I mean, Yeh Yes)',
-            'time_stamp': datetime.datetime.now()
+            'timestamp': datetime.datetime.now()
         }
 
     # MARK: UpdateModel
@@ -302,12 +302,11 @@ class FluencyService:
             # Return the list of token classification
             return word_level_predictions
         except Exception as error:
-            ev_logger.info(f'Failed to predict token classification ×')
+            ev_logger.info(f'Failed to predict token classification x')
 
             # If something went wrong
-            raise EvException(
+            raise EvServerException(
                 f'Failed to predict token classification model: {model}',
-                status_code = 500,
                 information = {
                     'error': str(error)
                 }
@@ -512,7 +511,7 @@ class FluencyService:
         elif word_per_minutes > 0: return 1
         else: return 0
 
-    # EvaluateLongPauses
+    # MARK: EvaluateLongPauses
     def _evaluate_long_pauses(self, long_pauses_count: int) -> float:
         '''
         Evaluate the long pauses based on the long pauses count.
@@ -549,7 +548,7 @@ class FluencyService:
         elif token_classification_words_count < 15: return 1
         else: return 0
 
-    # MARK: Evaluation
+    # MARK: EvaluateFluency
     def evaluate_fluency(self, transcribe: str, words: list) -> EvEvaluationModel:
         '''
         Evaluates the fluency of the speech based on the transcribe and words list.
@@ -764,7 +763,7 @@ class FluencyService:
             # Evaluate the long pauses
             if len(long_pauses) > 0:
                 # Add the long pauses title
-                html_feedback += f'You have {len(long_pauses)} long pauses, in'
+                html_feedback += f'You have {len(long_pauses)} long pauses, in '
                 
                 # Loop through the list
                 for index, (start, end) in enumerate(long_pauses):
@@ -859,7 +858,7 @@ class FluencyService:
                 }
             )
         
-        except EvException as error:
+        except EvServerException as error:
             # Raise the exception
             raise error
         
@@ -868,14 +867,13 @@ class FluencyService:
             message = f'Error evaluating fluency: {str(error)}'
 
             # Raise an exception with the error message
-            raise EvException(
+            raise EvServerException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
             )
     
-# MARK: FluencyService
-# Create the fluency service
+# MARK: FluencyServiceInstance
+# Create the fluency service instance
 fluency_service = FluencyService()

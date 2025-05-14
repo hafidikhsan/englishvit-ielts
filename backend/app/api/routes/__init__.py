@@ -11,14 +11,14 @@ from app.api.routes.evaluation import *
 from app.api.routes.information import *
 
 # Modules
-from app.models.response import EvResponseModel
+from app.models.response_model import EvResponseModel
 
 @api_bp.route('/', methods = ['GET'])
-def health():
+def api_base():
     return jsonify(EvResponseModel(
         code = 200,
         status = 'Success',
-        message = 'Health check successful',
+        message = 'API check successful',
         data = {
             'message': 'API is running',
         }

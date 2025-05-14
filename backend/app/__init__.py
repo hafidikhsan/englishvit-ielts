@@ -1,13 +1,13 @@
-# Import dependencies
-import nltk
+# MARK: Import
+# Dependency
 from flask import Flask
 from flask_cors import CORS
 
-# Import modules
+# Modules
 from config import EvIELTSConfig
 from app.utils.logger import ev_logger
 
-# Import routes
+# Routes
 from app.api.routes import api_bp
 
 # MARK: CreateApp
@@ -21,20 +21,9 @@ def create_app():
 
     # Enable CORS for all routes
     CORS(app)
-
-    # ev_logger.info('Start downloading NLTK models ...')
-
-    # # Download and load the NLTK model
-    # nltk.download('punkt_tab')
-    # nltk.download('averaged_perceptron_tagger_eng')
-    # nltk.download('punkt')
-    # nltk.download('stopwords')
-
-    # ev_logger.info('NLTK models downloaded successfully √')
     
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix = '/api')
-
 
     # Load the ASR model
     ev_logger.info('Start downloading ASR model ...')

@@ -6,8 +6,8 @@ import numpy as np
 from textgrid import TextGrid
 
 # Modules
-from app.models.evaluation import EvEvaluationModel
-from app.utils.exception import EvException
+from app.models.evaluation_model import EvEvaluationModel
+from app.utils.exception import EvServerException
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
 
 # MARK: PronunciationService
@@ -26,7 +26,7 @@ class PronunciationService:
         self.tool = 'mfa'
         self.task = 'align'
         self.acoustic_model = self.dictionary = 'english_us_arpa'
-        self.tags = '--clean'
+        self.tags = '--clean --single_speaker --workers 2'
         self.results_file_extension = 'TextGrid'
         self.phoneme_threshold = 0.06
         self.arpabert_to_ipa = {
@@ -58,7 +58,7 @@ class PronunciationService:
         # Calculate error rates
         phoneme_error_rate = (phoneme_error_count + missing_phoneme_count) / total_phoneme_count if total_phoneme_count > 0 else 1
 
-        # Define thresholds for IELTS bands
+        # Define thresholds for IELTS bands based on phoneme error rate
         if phoneme_error_rate < 0.05:
             return 9
         elif phoneme_error_rate < 0.1:
@@ -83,6 +83,7 @@ class PronunciationService:
         '''
         Maps the average word confidence to an IELTS band.
         '''
+        # Define thresholds for IELTS bands based on average confidence score
         if avg_confidence > 0.9:
             return 9
         elif avg_confidence > 0.8:
@@ -230,7 +231,7 @@ class PronunciationService:
         # Return the HTML feedback
         return '<div>' + html_feedback + '</div>'
 
-    # MARK: Evaluation
+    # MARK: EvaluatePronunciation
     def evaluate_pronunciation(self, corpus_path: str, transcribe: str, words_timestamps: list) -> EvEvaluationModel:
         '''
         Evaluates the pronunciation of an audio file using the MFA tool and the confidence scores
@@ -275,9 +276,8 @@ class PronunciationService:
                 message = f'Corpus path {corpus_path} does not exist.'
 
                 # Raise an exception with the error message
-                raise EvException(
+                raise EvServerException(
                     message = message,
-                    status_code = 500,
                     information = {
                         'message': message,
                     }
@@ -292,9 +292,8 @@ class PronunciationService:
                 message = f'Corpus path {corpus_path} must contain audio and transcription files.'
 
                 # Raise an exception with the error message
-                raise EvException(
+                raise EvServerException(
                     message = message,
-                    status_code = 500,
                     information = {
                         'message': message,
                     }
@@ -317,9 +316,8 @@ class PronunciationService:
                 message = f'Error running MFA tool: {e.output.decode()}'
 
                 # Raise an exception with the error message
-                raise EvException(
+                raise EvServerException(
                     message = message,
-                    status_code = 500,
                     information = {
                         'message': message,
                     }
@@ -331,12 +329,11 @@ class PronunciationService:
             # Check if the corpus path contains TextGrid files
             if not any(file.endswith(self.results_file_extension) for file in files):
                 # Define the error message
-                message = f'Corpus path {corpus_path} must contain TextGrid files.'
+                message = f'Corpus path {corpus_path} must contain TextGrid files after running MFA tool.'
 
                 # Raise an exception with the error message
-                raise EvException(
+                raise EvServerException(
                     message = message,
-                    status_code = 500,
                     information = {
                         'message': message,
                     }
@@ -513,7 +510,7 @@ class PronunciationService:
                 }
             )
         
-        except EvException as error:
+        except EvServerException as error:
             # Raise the exception
             raise error
         
@@ -522,13 +519,13 @@ class PronunciationService:
             message = f'Error evaluating pronunciation: {str(error)}'
 
             # Raise an exception with the error message
-            raise EvException(
+            raise EvServerException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
             )
 
 # MARK: PronunciationServiceInstance
+# Create the pronunciation service instance
 pronunciation_service = PronunciationService()

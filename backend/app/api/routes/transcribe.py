@@ -12,8 +12,8 @@ from app.services.asr_service import asr_service
 
 # Modules
 from config import EvIELTSConfig
-from app.utils.exception import EvException
-from app.models.response import EvResponseModel
+from app.utils.exception import EvServerException, EvClientException, EvAPIException
+from app.models.response_model import EvResponseModel
 
 # MARK: ConvertAudioToWav
 def _convert_audio_to_wav(original_path: str) -> str:
@@ -40,9 +40,8 @@ def _convert_audio_to_wav(original_path: str) -> str:
             message = f'File not found while convert the audio to wav: {original_path}'
 
             # Throw an exception
-            raise EvException(
+            raise EvServerException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
@@ -84,9 +83,8 @@ def _convert_audio_to_wav(original_path: str) -> str:
             message = f'Failed to convert audio to wav output not found: {output_path}'
 
             # Throw an exception
-            raise EvException(
+            raise EvServerException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
@@ -95,7 +93,7 @@ def _convert_audio_to_wav(original_path: str) -> str:
         # Return the output file path
         return output_path
     
-    except EvException as error:
+    except EvServerException as error:
         # Re-raise the error
         raise error
     
@@ -104,9 +102,8 @@ def _convert_audio_to_wav(original_path: str) -> str:
         message = f'Failed to convert audio to wav: {str(error)}'
 
         # Throw an exception
-        raise EvException(
+        raise EvServerException(
             message = message,
-            status_code = 500,
             information = {
                 'message': message,
             }
@@ -132,15 +129,14 @@ def _delete_audio_file(file_path: str) -> None:
             message = f'File not found while deleting audio file: {file_path}'
 
             # Throw an exception
-            raise EvException(
+            raise EvServerException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
             )
     
-    except EvException as error:
+    except EvServerException as error:
         # Re-raise the error
         raise error
     
@@ -149,9 +145,8 @@ def _delete_audio_file(file_path: str) -> None:
         message = f'Failed to delete audio file: {str(error)}'
 
         # Throw an exception
-        raise EvException(
+        raise EvServerException(
             message = message,
-            status_code = 500,
             information = {
                 'message': message,
             }
@@ -184,23 +179,21 @@ def transcribe():
             message = 'Invalid request, audio file is required'
 
             # Throw an exception
-            raise EvException(
+            raise EvClientException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
             )
         
-        # Check if the request has a text `order` and `question` field
-        if 'order' not in request.form or 'question' not in request.form:
+        # Check if the request has a text `test_id` field
+        if 'test_id' not in request.form:
             # Define the error message
-            message = 'Invalid request, order and question are required'
+            message = 'Invalid request, test_id is required'
 
             # Throw an exception
-            raise EvException(
+            raise EvClientException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
@@ -218,9 +211,8 @@ def transcribe():
             message = 'Invalid file type. Allowed types are: wav, mp3, m4a'
 
             # Throw an exception
-            raise EvException(
+            raise EvClientException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
@@ -232,9 +224,8 @@ def transcribe():
             message = 'File size exceeds the limit of 50MB'
 
             # Throw an exception
-            raise EvException(
+            raise EvClientException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
@@ -280,12 +271,47 @@ def transcribe():
             data = {
                 'transcribe': transcribe,
                 'words': words,
-                'order': request.form['order'],
-                'question': request.form['question'],
+                'test_id': request.form['test_id'],
             },
         ).to_dict()), 200, {'ContentType' : 'application/json'}
         
-    except EvException as error:
+    except EvClientException as error:
+        # Check if the audio file is saved and delete it
+        if audio_file_path:
+            _delete_audio_file(audio_file_path)
+
+        # Return the error message
+        return jsonify(EvResponseModel(
+            code = error.status_code,
+            status = 'Error',
+            message = error.message,
+            data = {
+                'error': {
+                    'message': error.message,
+                    'information': error.information,
+                },
+            },
+        ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+    
+    except EvServerException as error:
+        # Check if the audio file is saved and delete it
+        if audio_file_path:
+            _delete_audio_file(audio_file_path)
+
+        # Return the error message
+        return jsonify(EvResponseModel(
+            code = error.status_code,
+            status = 'Error',
+            message = error.message,
+            data = {
+                'error': {
+                    'message': error.message,
+                    'information': error.information,
+                },
+            },
+        ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+    
+    except EvAPIException as error:
         # Check if the audio file is saved and delete it
         if audio_file_path:
             _delete_audio_file(audio_file_path)

@@ -1,9 +1,11 @@
+# MARK: Import
 from app import create_app
 from config import EvIELTSConfig
 
 # Create Flask app
 app = create_app()
 
+# MARK: Main
 # Main entry point for the application
 if __name__ == '__main__':
     app.run(

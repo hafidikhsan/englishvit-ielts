@@ -6,12 +6,12 @@ from flask import jsonify
 from app.api.routes import api_bp
 
 # Modules
-from app.models.response import EvResponseModel
-from app.models.intro_section import EvIntroSectionModel
-from app.models.intro_section_content import EvIntroSectionContentModel
-from app.models.intro_section_content_list import EvIntroSectionContentListModel
-from app.models.intro_speaking_introduction import EvIntroSpeakingIntroductionModel
-from app.models.intro_speaking_introduction_list import EvIntroSpeakingIntroductionListModel
+from app.models.response_model import EvResponseModel
+from app.models.intro_section_model import EvIntroSectionModel
+from app.models.intro_section_content_model import EvIntroSectionContentModel
+from app.models.intro_section_content_list_model import EvIntroSectionContentListModel
+from app.models.intro_speaking_introduction_model import EvIntroSpeakingIntroductionModel
+from app.models.intro_speaking_introduction_list_model import EvIntroSpeakingIntroductionListModel
 
 # MARK: Information
 @api_bp.route('/information/<type>', methods = ['GET'])
@@ -170,6 +170,7 @@ def information(type):
 
             ]
         ).to_dict()), 200, {'ContentType' : 'application/json'}
+    
     elif type == 'speaking-intro':
         return jsonify(EvResponseModel(
             code = 200,
@@ -265,11 +266,12 @@ def information(type):
                 ).to_dict(),
             ]
         ).to_dict()), 200, {'ContentType' : 'application/json'}
+    
     else:
         # MARK: InvalidType
         # Return the error message
         return jsonify(EvResponseModel(
-            code = 500,
+            code = 400,
             status = 'Error',
             message = 'Invalid information type',
             data = {
@@ -277,4 +279,4 @@ def information(type):
                     'message': 'Invalid information type',
                 },
             },
-        ).to_dict()), 500, {'ContentType' : 'application/json'}
+        ).to_dict()), 400, {'ContentType' : 'application/json'}

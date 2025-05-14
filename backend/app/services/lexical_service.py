@@ -18,10 +18,10 @@ from transformers import (
 
 # Modules
 from config import EvIELTSConfig
-from app.utils.exception import EvException
+from app.utils.exception import EvServerException
 from app.services.spacy_service import spacy_service
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
-from app.models.evaluation import EvEvaluationModel
+from app.models.evaluation_model import EvEvaluationModel
 from app.utils.logger import ev_logger
 
 # MARK: LexicalService
@@ -91,7 +91,7 @@ class LexicalService:
 
             ev_logger.info(f'Successfully download {self.bert_fill_masked_model_name} √')
         except Exception as error:
-          ev_logger.info(f'Failed to download models ×')
+          ev_logger.info(f'Failed to download models x')
           ev_logger.info(f'Error: {error}')
 
     # MARK: CheckModel
@@ -119,7 +119,7 @@ class LexicalService:
             'bert_fill_masked_base_model': 'BERT',
             'bert_fill_masked_model_type': self.bert_fill_masked_model_task,
             'bert_fill_masked_model_description': 'Fill masked to predict the next word',
-            'time_stamp': datetime.datetime.now()
+            'timestamp': datetime.datetime.now()
         }
         
     # MARK: UpdateModel
@@ -419,7 +419,7 @@ class LexicalService:
         elif lexical_collocation_score >= 15: return 2
         else: return 1
 
-    # MARK: Evaluation
+    # MARK: EvaluateLexical
     def evaluate_lexical(self, transcribe: str) -> EvEvaluationModel:
         ''' 
         Evaluates the lexical of the transcribe. The lexical evaluation will be done by using
@@ -611,7 +611,7 @@ class LexicalService:
                 }
             )
         
-        except EvException as error:
+        except EvServerException as error:
             # Raise the exception
             raise error
         
@@ -620,14 +620,13 @@ class LexicalService:
             message = f'Error evaluating lexical: {str(error)}'
 
             # Raise an exception with the error message
-            raise EvException(
+            raise EvServerException(
                 message = message,
-                status_code = 500,
                 information = {
                     'message': message,
                 }
             )
     
-# MARK: LexicalService
-# Create the lexical service
+# MARK: LexicalServiceInstance
+# Create the lexical service instance
 lexical_service = LexicalService()
