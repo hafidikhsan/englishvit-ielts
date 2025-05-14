@@ -8,6 +8,7 @@ dependencies:
   - pip
   - pip:
       - textgrid
+      - requests
       - pydub
       - flask
       - flask_cors

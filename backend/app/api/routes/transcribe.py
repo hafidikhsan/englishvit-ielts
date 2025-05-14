@@ -1,6 +1,8 @@
 # MARK: Import
 # Dependencies
 import os
+import requests
+import json
 from pydub import AudioSegment
 from flask import jsonify, request
 
@@ -256,8 +258,45 @@ def transcribe():
         (transcribe, words) = asr_service.process_audio(audio_file_path)
 
         # Send the result to backend
-        if (request.form.get('is_save', '0') == '1'):
-            pass
+        if (request.headers.get('Authorization', '') != ''):
+            # Load the audio file
+            with open(audio_file_path, 'rb') as audio_file:
+                # Define the headers
+                headers = {
+                    'Authorization': request.headers['Authorization']
+                }
+
+                # Define the files
+                files = {
+                    'audio': (os.path.basename(audio_file_path), audio_file, 'audio/wav')
+                }
+
+                # Define the data
+                data = {
+                    'transcribe': transcribe,
+                    'words': json.dumps(words),
+                }
+
+                # Send the request to the Englishvit API
+                response = requests.post(
+                    f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
+                    files = files, 
+                    data = data, 
+                    headers = headers
+                )
+
+                # Check if the response is not successful
+                if response.status_code != 200:
+                    # Define the error message
+                    message = f'Failed to send the audio file to the server: {response.text}'
+
+                    # Throw an exception
+                    raise EvAPIException(
+                        message = message,
+                        information = {
+                            'message': message,
+                        }
+                    )
 
         # Delete the audio file
         _delete_audio_file(audio_file_path)

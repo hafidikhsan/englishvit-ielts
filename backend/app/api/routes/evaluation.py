@@ -1,6 +1,7 @@
 # MARK: Import
 # Dependencies
 import os
+import requests
 import json
 import shutil
 from flask import jsonify, request
@@ -104,12 +105,40 @@ def evaluation(type):
                 words_timestamps = words_timestamps,
             )
 
+            # Send the result to backend
+            if (request.headers.get('Authorization', '') != ''):
+                # Define the headers
+                headers = {
+                    'Authorization': request.headers['Authorization']
+                }
+
+                # Define the data
+                data = {
+                    'pronunciation_feedback': json.dumps(evaluation.to_dict()),
+                }
+
+                # Send the request to the Englishvit API
+                response = requests.post(
+                    f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
+                    data = data, 
+                    headers = headers
+                )
+
+                # Check if the response is not successful
+                if response.status_code != 200:
+                    # Define the error message
+                    message = f'Failed to send the data to the server: {response.text}'
+
+                    # Throw an exception
+                    raise EvAPIException(
+                        message = message,
+                        information = {
+                            'message': message,
+                        }
+                    )
+
             # Delete the folder
             shutil.rmtree(corpus_folder_path)
-
-            # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
 
             # Return the evaluation result
             return jsonify(EvResponseModel(
@@ -212,8 +241,36 @@ def evaluation(type):
             )
 
             # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
+            if (request.headers.get('Authorization', '') != ''):
+                # Define the headers
+                headers = {
+                    'Authorization': request.headers['Authorization']
+                }
+
+                # Define the data
+                data = {
+                    'grammar_feedback': json.dumps(evaluation.to_dict()),
+                }
+
+                # Send the request to the Englishvit API
+                response = requests.post(
+                    f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
+                    data = data, 
+                    headers = headers
+                )
+
+                # Check if the response is not successful
+                if response.status_code != 200:
+                    # Define the error message
+                    message = f'Failed to send the data to the server: {response.text}'
+
+                    # Throw an exception
+                    raise EvAPIException(
+                        message = message,
+                        information = {
+                            'message': message,
+                        }
+                    )
 
             # Return the evaluation result
             return jsonify(EvResponseModel(
@@ -300,8 +357,36 @@ def evaluation(type):
             )
 
             # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
+            if (request.headers.get('Authorization', '') != ''):
+                # Define the headers
+                headers = {
+                    'Authorization': request.headers['Authorization']
+                }
+
+                # Define the data
+                data = {
+                    'lexical_feedback': json.dumps(evaluation.to_dict()),
+                }
+
+                # Send the request to the Englishvit API
+                response = requests.post(
+                    f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
+                    data = data, 
+                    headers = headers
+                )
+
+                # Check if the response is not successful
+                if response.status_code != 200:
+                    # Define the error message
+                    message = f'Failed to send the data to the server: {response.text}'
+
+                    # Throw an exception
+                    raise EvAPIException(
+                        message = message,
+                        information = {
+                            'message': message,
+                        }
+                    )
 
             # Return the evaluation result
             return jsonify(EvResponseModel(
@@ -400,8 +485,36 @@ def evaluation(type):
             )
 
             # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
+            if (request.headers.get('Authorization', '') != ''):
+                # Define the headers
+                headers = {
+                    'Authorization': request.headers['Authorization']
+                }
+
+                # Define the data
+                data = {
+                    'fluency_feedback': json.dumps(evaluation.to_dict()),
+                }
+
+                # Send the request to the Englishvit API
+                response = requests.post(
+                    f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
+                    data = data, 
+                    headers = headers
+                )
+
+                # Check if the response is not successful
+                if response.status_code != 200:
+                    # Define the error message
+                    message = f'Failed to send the data to the server: {response.text}'
+
+                    # Throw an exception
+                    raise EvAPIException(
+                        message = message,
+                        information = {
+                            'message': message,
+                        }
+                    )
 
             # Return the evaluation result
             return jsonify(EvResponseModel(
@@ -469,10 +582,10 @@ def evaluation(type):
     # MARK: Overall
     elif type == 'overall':
         try:
-            # Check if the request has a text `session_id`, `fluency`, `lexical`, `grammar`, and `pronunciation` field
-            if 'session_id' not in request.form or 'fluency' not in request.form or 'lexical' not in request.form or 'grammar' not in request.form or 'pronunciation' not in request.form:
+            # Check if the request has a text `session_id`, `finished`, `fluency`, `lexical`, `grammar`, and `pronunciation` field
+            if 'session_id' not in request.form or 'finished' not in request.form or 'fluency' not in request.form or 'lexical' not in request.form or 'grammar' not in request.form or 'pronunciation' not in request.form:
                 # Define the error message
-                message = 'Invalid request session_id, fluency, lexical, grammar, and pronunciation are required'
+                message = 'Invalid request session_id, finished, fluency, lexical, grammar, and pronunciation are required'
 
                 # Throw an exception
                 raise EvClientException(
@@ -497,8 +610,46 @@ def evaluation(type):
             )
 
             # Send the result to backend
-            if (request.form.get('is_save', '0') == '1'):
-                pass
+            if (request.headers.get('Authorization', '') != ''):
+                # Define the headers
+                headers = {
+                    'Authorization': request.headers['Authorization']
+                }
+
+                # Define the data
+                data = {
+                    'finished': request.form.get('finished'),
+                    'overall_band': evaluation.overall_band,
+                    'overall_feedback': json.dumps(evaluation.overall_feedback),
+                    'fluency_band': evaluation.fluency_band,
+                    'fluency_feedback': json.dumps(evaluation.fluency_feedback),
+                    'lexical_band': evaluation.lexical_band,
+                    'lexical_feedback': json.dumps(evaluation.lexical_feedback),
+                    'grammar_band': evaluation.grammar_band,
+                    'grammar_feedback': json.dumps(evaluation.grammar_feedback),
+                    'pronunciation_band': evaluation.pronunciation_band,
+                    'pronunciation_feedback': json.dumps(evaluation.pronunciation_feedback),
+                }
+
+                # Send the request to the Englishvit API
+                response = requests.post(
+                    f"https://englishvit.com/api/user/ielts-ai/session/update/{request.form['session_id']}", 
+                    data = data, 
+                    headers = headers
+                )
+
+                # Check if the response is not successful
+                if response.status_code != 200:
+                    # Define the error message
+                    message = f'Failed to send the data to the server: {response.text}'
+
+                    # Throw an exception
+                    raise EvAPIException(
+                        message = message,
+                        information = {
+                            'message': message,
+                        }
+                    )
 
             # Return the evaluation result
             return jsonify(EvResponseModel(

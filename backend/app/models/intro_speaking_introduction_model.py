@@ -35,7 +35,7 @@ class EvIntroSpeakingIntroductionModel:
             'label': self.label,
             'descriptions': self.descriptions,
             'instructions': [item.to_dict() for item in self.instructions],
-            'outroMessage': self.outroMessage,
+            'outro_message': self.outroMessage,
             'tips': self.tips.to_dict() if self.tips else None,
-            'nextPart': self.nextPart if self.nextPart else None,
+            'next_part': self.nextPart if self.nextPart else None,
         }
