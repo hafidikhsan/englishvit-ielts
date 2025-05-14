@@ -9,6 +9,8 @@ api_bp = Blueprint('/api', __name__)
 from app.api.routes.transcribe import *
 from app.api.routes.evaluation import *
 from app.api.routes.information import *
+from app.api.routes.health import *
+from app.api.routes.model import *
 
 # Modules
 from app.models.response_model import EvResponseModel

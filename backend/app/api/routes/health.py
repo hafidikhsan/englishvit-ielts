@@ -13,7 +13,6 @@ from app.services.lexical_service import lexical_service
 from app.services.fluency_service import fluency_service
 
 # Modules
-from app.utils.exception import EvServerException, EvClientException, EvAPIException
 from app.models.response_model import EvResponseModel
 
 # MARK: Information
