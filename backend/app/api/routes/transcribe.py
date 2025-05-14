@@ -255,7 +255,9 @@ def transcribe():
         # Transcribe the audio file
         (transcribe, words) = asr_service.process_audio(audio_file_path)
 
-        # Send to Englishvit API
+        # Send the result to backend
+        if (request.form.get('is_save', '0') == '1'):
+            pass
 
         # Delete the audio file
         _delete_audio_file(audio_file_path)
