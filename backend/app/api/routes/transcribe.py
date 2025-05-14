@@ -261,26 +261,24 @@ def transcribe():
         if (request.headers.get('Authorization', '') != ''):
             # Load the audio file
             with open(audio_file_path, 'rb') as audio_file:
+                # Read the audio file content
+                audio_content = audio_file.read()
+
                 # Define the headers
                 headers = {
                     'Authorization': request.headers['Authorization']
-                }
-
-                # Define the files
-                files = {
-                    'audio': (os.path.basename(audio_file_path), audio_file, 'audio/wav')
                 }
 
                 # Define the data
                 data = {
                     'transcribe': transcribe,
                     'words': json.dumps(words),
+                    'audio': audio_content,  # Add audio content as BLOB
                 }
 
                 # Send the request to the Englishvit API
                 response = requests.post(
                     f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
-                    files = files, 
                     data = data, 
                     headers = headers
                 )
