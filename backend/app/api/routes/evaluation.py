@@ -42,6 +42,16 @@ def evaluation(type):
                         'message': message,
                     }
                 )
+            # Get the words
+            words = request.form.get('words')
+
+            # Declare words timestamps
+            words_timestamps = []
+            
+            # Check if words is not empty
+            if words:
+                # Load the words timestamps from JSON
+                words_timestamps = json.loads(words)
 
             # Evaluate the pronunciation
             evaluation = pronunciation_service.evaluate_pronunciation_new(
@@ -146,216 +156,217 @@ def evaluation(type):
                     },
                 },
             ).to_dict()), 500, {'ContentType' : 'application/json'}
+    
+    elif type == 'pronunciation_old':
+        # A flag to check if the corpus is already saved
+        corpus_folder_path = None
         
-        # # A flag to check if the corpus is already saved
-        # corpus_folder_path = None
-        
-        # try:
-        #     # Check if the request has files and if the file is present
-        #     if not request.files or 'file' not in request.files:
-        #         # Define the error message
-        #         message = 'Invalid request, audio file is required'
+        try:
+            # Check if the request has files and if the file is present
+            if not request.files or 'file' not in request.files:
+                # Define the error message
+                message = 'Invalid request, audio file is required'
 
-        #         # Throw an exception
-        #         raise EvClientException(
-        #             message = message,
-        #             information = {
-        #                 'message': message,
-        #             }
-        #         )
+                # Throw an exception
+                raise EvClientException(
+                    message = message,
+                    information = {
+                        'message': message,
+                    }
+                )
             
-        #     # Check if the request has a text `transcribe`, `words`, and `test_id` field
-        #     if 'transcribe' not in request.form or 'words' not in request.form or 'test_id' not in request.form:
-        #         # Define the error message
-        #         message = 'Invalid request, transcribe and words are required'
+            # Check if the request has a text `transcribe`, `words`, and `test_id` field
+            if 'transcribe' not in request.form or 'words' not in request.form or 'test_id' not in request.form:
+                # Define the error message
+                message = 'Invalid request, transcribe and words are required'
 
-        #         # Throw an exception
-        #         raise EvClientException(
-        #             message = message,
-        #             information = {
-        #                 'message': message,
-        #             }
-        #         )
+                # Throw an exception
+                raise EvClientException(
+                    message = message,
+                    information = {
+                        'message': message,
+                    }
+                )
             
-        #     # Get the audio file from the request
-        #     audio_file = request.files['file']
+            # Get the audio file from the request
+            audio_file = request.files['file']
 
-        #     # Get the transcribe
-        #     transcribe = request.form.get('transcribe')
+            # Get the transcribe
+            transcribe = request.form.get('transcribe')
             
-        #     # Get the words
-        #     words = request.form.get('words')
+            # Get the words
+            words = request.form.get('words')
 
-        #     # Declare words timestamps
-        #     words_timestamps = []
+            # Declare words timestamps
+            words_timestamps = []
             
-        #     # Check if words is not empty
-        #     if words:
-        #         # Load the words timestamps from JSON
-        #         words_timestamps = json.loads(words)
+            # Check if words is not empty
+            if words:
+                # Load the words timestamps from JSON
+                words_timestamps = json.loads(words)
 
-        #     # Get the file name and extension
-        #     file_name, file_extension = os.path.splitext(audio_file.filename)
+            # Get the file name and extension
+            file_name, file_extension = os.path.splitext(audio_file.filename)
 
-        #     # Define main directory
-        #     main_directory = '/app/audio'
+            # Define main directory
+            main_directory = '/app/audio'
 
-        #     # Change corpus folder path
-        #     corpus_folder_path = os.path.join(main_directory, file_name)
+            # Change corpus folder path
+            corpus_folder_path = os.path.join(main_directory, file_name)
 
-        #     # Create new directory if it doesn't exist
-        #     os.makedirs(corpus_folder_path)
+            # Create new directory if it doesn't exist
+            os.makedirs(corpus_folder_path)
 
-        #     # Get the audio file path
-        #     audio_file_path = os.path.join(corpus_folder_path, file_name + file_extension)
+            # Get the audio file path
+            audio_file_path = os.path.join(corpus_folder_path, file_name + file_extension)
 
-        #     # Save the audio file to the server
-        #     audio_file.save(audio_file_path)
+            # Save the audio file to the server
+            audio_file.save(audio_file_path)
 
-        #     # Write transcribe text to file
-        #     with open(os.path.join(corpus_folder_path, f'{file_name}.txt'), 'w') as f:
-        #         f.write(transcribe)
+            # Write transcribe text to file
+            with open(os.path.join(corpus_folder_path, f'{file_name}.txt'), 'w') as f:
+                f.write(transcribe)
 
-        #     # Prepare local temp folder for processing
-        #     tmp_corpus_folder_path = os.path.join('/app/tmp_audio', file_name)
+            # Prepare local temp folder for processing
+            tmp_corpus_folder_path = os.path.join('/app/tmp_audio', file_name)
 
-        #     # Clean tmp folder if exists
-        #     if os.path.exists(tmp_corpus_folder_path):
-        #         shutil.rmtree(tmp_corpus_folder_path)
+            # Clean tmp folder if exists
+            if os.path.exists(tmp_corpus_folder_path):
+                shutil.rmtree(tmp_corpus_folder_path)
 
-        #     # Copy corpus folder (audio + transcript) to tmp folder
-        #     shutil.copytree(corpus_folder_path, tmp_corpus_folder_path)
+            # Copy corpus folder (audio + transcript) to tmp folder
+            shutil.copytree(corpus_folder_path, tmp_corpus_folder_path)
 
-        #     # Evaluate the pronunciation
-        #     evaluation = pronunciation_service.evaluate_pronunciation(
-        #         corpus_path = tmp_corpus_folder_path,
-        #         transcribe = transcribe,
-        #         words_timestamps = words_timestamps,
-        #     )
+            # Evaluate the pronunciation
+            evaluation = pronunciation_service.evaluate_pronunciation(
+                corpus_path = tmp_corpus_folder_path,
+                transcribe = transcribe,
+                words_timestamps = words_timestamps,
+            )
 
-        #     # Copy generated TextGrid(s) or output files back to original folder
-        #     # Assuming your evaluation produces TextGrid file(s) inside tmp_corpus_folder_path
-        #     for file in os.listdir(tmp_corpus_folder_path):
-        #         if file.endswith('.TextGrid'):
-        #             shutil.copy(
-        #                 os.path.join(tmp_corpus_folder_path, file),
-        #                 corpus_folder_path
-        #             )
+            # Copy generated TextGrid(s) or output files back to original folder
+            # Assuming your evaluation produces TextGrid file(s) inside tmp_corpus_folder_path
+            for file in os.listdir(tmp_corpus_folder_path):
+                if file.endswith('.TextGrid'):
+                    shutil.copy(
+                        os.path.join(tmp_corpus_folder_path, file),
+                        corpus_folder_path
+                    )
 
-        #     # Send the result to backend
-        #     if (request.headers.get('Authorization', '') != ''):
-        #         # Define the headers
-        #         headers = {
-        #             'Authorization': request.headers['Authorization']
-        #         }
+            # Send the result to backend
+            if (request.headers.get('Authorization', '') != ''):
+                # Define the headers
+                headers = {
+                    'Authorization': request.headers['Authorization']
+                }
 
-        #         # Define the data
-        #         data = {
-        #             'pronunciation_feedback': json.dumps(evaluation.to_dict()),
-        #         }
+                # Define the data
+                data = {
+                    'pronunciation_feedback': json.dumps(evaluation.to_dict()),
+                }
 
-        #         # Send the request to the Englishvit API
-        #         response = requests.post(
-        #             f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
-        #             data = data, 
-        #             headers = headers
-        #         )
+                # Send the request to the Englishvit API
+                response = requests.post(
+                    f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
+                    data = data, 
+                    headers = headers
+                )
 
-        #         # Check if the response is not successful
-        #         if response.status_code != 200:
-        #             # Define the error message
-        #             message = f'Failed to send the data to the server: {response.text}'
+                # Check if the response is not successful
+                if response.status_code != 200:
+                    # Define the error message
+                    message = f'Failed to send the data to the server: {response.text}'
 
-        #             # Throw an exception
-        #             raise EvAPIException(
-        #                 message = message,
-        #                 information = {
-        #                     'message': message,
-        #                 }
-        #             )
+                    # Throw an exception
+                    raise EvAPIException(
+                        message = message,
+                        information = {
+                            'message': message,
+                        }
+                    )
 
-        #     # Delete the folder
-        #     shutil.rmtree(corpus_folder_path)
-        #     shutil.rmtree(tmp_corpus_folder_path)
+            # Delete the folder
+            shutil.rmtree(corpus_folder_path)
+            shutil.rmtree(tmp_corpus_folder_path)
 
-        #     # Return the evaluation result
-        #     return jsonify(EvResponseModel(
-        #         code = 200,
-        #         status = 'Success',
-        #         message = 'Pronunciation evaluation completed successfully',
-        #         data = evaluation.to_dict(),
-        #     ).to_dict()), 200, {'ContentType' : 'application/json'}
+            # Return the evaluation result
+            return jsonify(EvResponseModel(
+                code = 200,
+                status = 'Success',
+                message = 'Pronunciation evaluation completed successfully',
+                data = evaluation.to_dict(),
+            ).to_dict()), 200, {'ContentType' : 'application/json'}
         
-        # except EvClientException as error:
-        #     # Check if the corpus folder is saved and delete it
-        #     if corpus_folder_path:
-        #         shutil.rmtree(corpus_folder_path)
+        except EvClientException as error:
+            # Check if the corpus folder is saved and delete it
+            if corpus_folder_path:
+                shutil.rmtree(corpus_folder_path)
 
-        #     # Return the error message
-        #     return jsonify(EvResponseModel(
-        #         code = error.status_code,
-        #         status = 'Error',
-        #         message = 'Invalid request in pronunciation evaluation',
-        #         data = {
-        #             'error': {
-        #                 'message': error.message,
-        #                 'information': error.information,
-        #             },
-        #         },
-        #     ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Invalid request in pronunciation evaluation',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
         
-        # except EvServerException as error:
-        #     # Check if the corpus folder is saved and delete it
-        #     if corpus_folder_path:
-        #         shutil.rmtree(corpus_folder_path)
+        except EvServerException as error:
+            # Check if the corpus folder is saved and delete it
+            if corpus_folder_path:
+                shutil.rmtree(corpus_folder_path)
 
-        #     # Return the error message
-        #     return jsonify(EvResponseModel(
-        #         code = error.status_code,
-        #         status = 'Error',
-        #         message = 'Server error in pronunciation evaluation',
-        #         data = {
-        #             'error': {
-        #                 'message': error.message,
-        #                 'information': error.information,
-        #             },
-        #         },
-        #     ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'Server error in pronunciation evaluation',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
         
-        # except EvAPIException as error:
-        #     # Check if the corpus folder is saved and delete it
-        #     if corpus_folder_path:
-        #         shutil.rmtree(corpus_folder_path)
+        except EvAPIException as error:
+            # Check if the corpus folder is saved and delete it
+            if corpus_folder_path:
+                shutil.rmtree(corpus_folder_path)
 
-        #     # Return the error message
-        #     return jsonify(EvResponseModel(
-        #         code = error.status_code,
-        #         status = 'Error',
-        #         message = 'API error in pronunciation evaluation',
-        #         data = {
-        #             'error': {
-        #                 'message': error.message,
-        #                 'information': error.information,
-        #             },
-        #         },
-        #     ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = error.status_code,
+                status = 'Error',
+                message = 'API error in pronunciation evaluation',
+                data = {
+                    'error': {
+                        'message': error.message,
+                        'information': error.information,
+                    },
+                },
+            ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
         
-        # except Exception as error:
-        #     # Check if the corpus folder is saved and delete it
-        #     if corpus_folder_path:
-        #         shutil.rmtree(corpus_folder_path)
+        except Exception as error:
+            # Check if the corpus folder is saved and delete it
+            if corpus_folder_path:
+                shutil.rmtree(corpus_folder_path)
 
-        #     # Return the error message
-        #     return jsonify(EvResponseModel(
-        #         code = 500,
-        #         status = 'Error',
-        #         message = 'Internal server error in pronunciation evaluation',
-        #         data = {
-        #             'error': {
-        #                 'message': str(error),
-        #             },
-        #         },
-        #     ).to_dict()), 500, {'ContentType' : 'application/json'}
+            # Return the error message
+            return jsonify(EvResponseModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error in pronunciation evaluation',
+                data = {
+                    'error': {
+                        'message': str(error),
+                    },
+                },
+            ).to_dict()), 500, {'ContentType' : 'application/json'}
         
     # MARK: Grammar
     elif type == 'grammar':
