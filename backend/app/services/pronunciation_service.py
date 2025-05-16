@@ -317,7 +317,6 @@ class PronunciationService:
                 ])
                 # Run the MFA tool to align the audio file with the transcription
                 subprocess.check_output([
-                    'time',
                     self.tool,
                     self.task,
                     corpus_path,
@@ -581,7 +580,7 @@ class PronunciationService:
             return f"<li>No {category_name} words found.</li>"
         items = ""
         for w in words_list:
-            items += f'<li><strong>{w["text"]}</strong> (Confidence: {w["confidence"]:.3f}, POS: {w["tag"]})</li>'
+            items += f'<li><strong>{w["text"]}</strong></li>'
         return items
     
     # MARK: EvaluatePronunciation
@@ -618,11 +617,11 @@ class PronunciationService:
                     highlighted_sentence.append(text)
                 elif conf >= WARNING_THRESHOLD:
                     category = "warning"
-                    highlighted_sentence.append(f'<span style="background-color: yellow;">{text}</span>')
+                    highlighted_sentence.append(f'<span style="color: yellow;">{text}</span>')
                     warnings.append(w)
                 else:
                     category = "bad"
-                    highlighted_sentence.append(f'<span style="background-color: red; color: white;">{text}</span>')
+                    highlighted_sentence.append(f'<span style="color: red;">{text}</span>')
                     bads.append(w)
 
             # Calculate average confidence
@@ -633,12 +632,7 @@ class PronunciationService:
             bads_html = self._build_word_list_html(bads, "bad")
             return EvEvaluationModel(
                 ielts_band = ielts_band,
-                readable_feedback = f'''<div>
-                    <p><strong>Original Sentence:</strong></p>{sentence_html}
-                    <p><strong>Warning words:</strong></strong></p><ul>{warnings_html}</ul>
-                    <p><strong>Bad words:</strong></strong></p><ul>{bads_html}</ul>
-                </div>
-                ''',
+                readable_feedback = f'''<div><p><strong>Original Sentence:</strong></p>{sentence_html}<p><strong>Warning words:</strong></strong></p><ul>{warnings_html}</ul><p><strong>Bad words:</strong></strong></p><ul>{bads_html}</ul></div>''',
                 feedback_information = {
                     'avg_confidence': avg_confidence,
                     'warnings': warnings_html,
