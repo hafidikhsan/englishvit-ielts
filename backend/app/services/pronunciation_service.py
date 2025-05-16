@@ -543,6 +543,124 @@ class PronunciationService:
                     'message': message,
                 }
             )
+        
+    def _map_confidence_to_ielts_band(self, avg_conf):
+        # Simple linear mapping, example:
+        # 0.95 - 1.00 -> Band 9
+        # 0.85 - 0.95 -> Band 8
+        # 0.75 - 0.85 -> Band 7
+        # 0.65 - 0.75 -> Band 6
+        # 0.55 - 0.65 -> Band 5
+        # Below 0.55  -> Band 4 or below
+        if avg_conf >= 0.95:
+            return 9
+        elif avg_conf >= 0.85:
+            return 8
+        elif avg_conf >= 0.75:
+            return 7
+        elif avg_conf >= 0.65:
+            return 6
+        elif avg_conf >= 0.55:
+            return 5
+        else:
+            return 4
+        
+    def _join_words_with_spacing(self, word_list):
+        result = ""
+        punctuation = {",", ".", "!", "?", ";", ":"}
+        for i, w in enumerate(word_list):
+            # If word is punctuation, no leading space
+            if w.strip() in punctuation:
+                result = result.rstrip() + w + " "
+            else:
+                result += w + " "
+        return result.strip()
+    
+    def _build_word_list_html(self, words_list, category_name):
+        if not words_list:
+            return f"<li>No {category_name} words found.</li>"
+        items = ""
+        for w in words_list:
+            items += f'<li><strong>{w["text"]}</strong> (Confidence: {w["confidence"]:.3f}, POS: {w["tag"]})</li>'
+        return items
+    
+    # MARK: EvaluatePronunciation
+    def evaluate_pronunciation_new(self, words_timestamps: list) -> EvEvaluationModel:
+        try:
+            # Check if words_timestamps is empty
+            if words_timestamps == []:
+                # Return the evaluation model
+                return EvEvaluationModel(
+                    ielts_band = 0,
+                    readable_feedback = f'''
+                        <p><strong>Feedback:</strong></p>
+                        <p>Your transcription is empty. Please provide a valid transcription.</p>
+                    ''',
+                    feedback_information = {
+                        'avg_confidence': 0,
+                        'warnings': [],
+                        'bads': [],
+                    }
+                )
+            
+            highlighted_sentence = []
+            warnings = []
+            bads = []
+            GOOD_THRESHOLD = 0.90
+            WARNING_THRESHOLD = 0.80    
+
+            for w in words_timestamps:
+                conf = w["confidence"]
+                text = w["text"]
+
+                if conf >= GOOD_THRESHOLD:
+                    category = "good"
+                    highlighted_sentence.append(text)
+                elif conf >= WARNING_THRESHOLD:
+                    category = "warning"
+                    highlighted_sentence.append(f'<span style="background-color: yellow;">{text}</span>')
+                    warnings.append(w)
+                else:
+                    category = "bad"
+                    highlighted_sentence.append(f'<span style="background-color: red; color: white;">{text}</span>')
+                    bads.append(w)
+
+            # Calculate average confidence
+            avg_confidence = sum(w["confidence"] for w in words_timestamps) / len(words_timestamps)
+            ielts_band = self._map_confidence_to_ielts_band(avg_confidence)
+            sentence_html = self._join_words_with_spacing(highlighted_sentence)
+            warnings_html = self._build_word_list_html(warnings, "warning")
+            bads_html = self._build_word_list_html(bads, "bad")
+            return EvEvaluationModel(
+                ielts_band = ielts_band,
+                readable_feedback = f'''<div>
+                    <p><strong>Original Sentence:</strong></p>{sentence_html}
+                    <p><strong>Warning words:</strong></strong></p><ul>{warnings_html}</ul>
+                    <p><strong>Bad words:</strong></strong></p><ul>{bads_html}</ul>
+                </div>
+                ''',
+                feedback_information = {
+                    'avg_confidence': avg_confidence,
+                    'warnings': warnings_html,
+                    'bads': bads_html,
+                }
+            )
+        
+        except EvServerException as error:
+            # Raise the exception
+            raise error
+        
+        except Exception as error:
+            # Define the error message
+            message = f'Error evaluating pronunciation: {str(error)}'
+
+            # Raise an exception with the error message
+            raise EvServerException(
+                message = message,
+                information = {
+                    'message': message,
+                }
+            )
 
 # MARK: PronunciationServiceInstance
 # Create the pronunciation service instance
