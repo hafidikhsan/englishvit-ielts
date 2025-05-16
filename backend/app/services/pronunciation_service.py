@@ -26,7 +26,7 @@ class PronunciationService:
         self.tool = 'mfa'
         self.task = 'align'
         self.acoustic_model = self.dictionary = 'english_us_arpa'
-        self.tags = '--clean --single_speaker --workers 2'
+        self.tags = '--single_speaker --workers 2'
         self.results_file_extension = 'TextGrid'
         self.phoneme_threshold = 0.06
         self.arpabert_to_ipa = {
