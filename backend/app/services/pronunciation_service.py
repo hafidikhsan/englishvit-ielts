@@ -26,7 +26,7 @@ class PronunciationService:
         '''
         self.tool = 'mfa'
         self.task = 'align'
-        self.acoustic_model = self.dictionary = 'english_us_arpa'
+        self.acoustic_model = self.dictionary = 'english_mfa'
         self.tags = '--single_speaker --workers 2 -j 8'
         self.results_file_extension = 'TextGrid'
         self.phoneme_threshold = 0.06
@@ -312,6 +312,8 @@ class PronunciationService:
                     '--single_speaker',
                     '--workers', '2',
                     '-j', '8',
+                    '--no_speaker_adaptation',
+                    '--clean',
                 ])
                 # Run the MFA tool to align the audio file with the transcription
                 subprocess.check_output([

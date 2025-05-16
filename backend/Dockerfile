@@ -19,8 +19,8 @@ RUN /bin/bash -c "source activate ielts && \
     python -m nltk.downloader punkt_tab && \
     python -m nltk.downloader stopwords && \
     python -m nltk.downloader averaged_perceptron_tagger_eng && \
-    mfa model download acoustic english_us_arpa && \
-    mfa model download dictionary english_us_arpa && \
+    mfa model download acoustic english_mfa && \
+    mfa model download dictionary english_mfa && \
     python3 -m spacy download en_core_web_sm"
 
 COPY . .
