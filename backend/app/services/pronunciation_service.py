@@ -9,7 +9,6 @@ from textgrid import TextGrid
 from app.models.evaluation_model import EvEvaluationModel
 from app.utils.exception import EvServerException
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
-from app.utils.logger import ev_logger
 
 # MARK: PronunciationService
 class PronunciationService:
@@ -301,20 +300,6 @@ class PronunciationService:
                 )
             
             try:
-                ev_logger.info([
-                    'time',
-                    self.tool,
-                    self.task,
-                    corpus_path,
-                    self.dictionary,
-                    self.acoustic_model,
-                    corpus_path,
-                    '--single_speaker',
-                    '--workers', '2',
-                    '-j', '8',
-                    '--no_speaker_adaptation',
-                    '--clean',
-                ])
                 # Run the MFA tool to align the audio file with the transcription
                 subprocess.check_output([
                     self.tool,
@@ -543,6 +528,7 @@ class PronunciationService:
                 }
             )
         
+    # MARK: MapConfidenceToIELTSBand
     def _map_confidence_to_ielts_band(self, avg_conf):
         # Simple linear mapping, example:
         # 0.95 - 1.00 -> Band 9
@@ -563,7 +549,8 @@ class PronunciationService:
             return 5
         else:
             return 4
-        
+    
+    # MARK: JoinWordsWithSpacing
     def _join_words_with_spacing(self, word_list):
         result = ""
         punctuation = {",", ".", "!", "?", ";", ":"}
@@ -575,6 +562,7 @@ class PronunciationService:
                 result += w + " "
         return result.strip()
     
+    # MARK: BuildWordListHTML
     def _build_word_list_html(self, words_list, category_name):
         if not words_list:
             return f"<li>No {category_name} words found.</li>"

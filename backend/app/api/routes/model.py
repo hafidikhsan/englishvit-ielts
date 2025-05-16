@@ -324,7 +324,9 @@ def model(type):
                 status = 'Success',
                 message = 'Grammar model updated successfully',
                 data = {
-                    'model_name': grammar_service.model_name,
+                    'grammarly_model_name': grammar_service.grammarly_model_name,
+                    'happy_base_model_name': grammar_service.happy_base_model_name,
+                    'open_source_model_name': grammar_service.open_source_model_name,
                 },
             ).to_dict()), 200, {'ContentType' : 'application/json'}
 
@@ -405,13 +407,25 @@ def model(type):
             # Change the grammar model
             grammar_service.change_gec_model(model = model_name)
 
+            # Define model name
+            current_model_name = ''
+
+            # Define the model name
+            if model_name == 'grammarly':
+                current_model_name = grammar_service.grammarly_model_name
+            elif model_name == 'happy':
+                current_model_name = grammar_service.happy_base_model_name
+            elif model_name == 'base':
+                current_model_name = grammar_service.open_source_model_name
+
             # Return the result
             return jsonify(EvResponseModel(
                 code = 200,
                 status = 'Success',
                 message = 'Grammar model change successfully',
                 data = {
-                    'model_name': grammar_service.model_name,
+                    'model_key': model_name,
+                    'model_name': current_model_name,
                 },
             ).to_dict()), 200, {'ContentType' : 'application/json'}
 
@@ -482,7 +496,8 @@ def model(type):
                 status = 'Success',
                 message = 'Lexical model updated successfully',
                 data = {
-                    'model_name': lexical_service.model_name,
+                    'cefr_classification_model_name': lexical_service.cefr_classification_model_name,
+                    'bert_fill_masked_model_name': lexical_service.bert_fill_masked_model_name,
                 },
             ).to_dict()), 200, {'ContentType' : 'application/json'}
 

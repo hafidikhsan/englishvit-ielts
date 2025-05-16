@@ -28,7 +28,7 @@ def evaluation(type):
     '''
     # Switch case for different evaluation types
     # MARK: Pronunciation
-    if type == 'pronunciation':
+    if type == 'pronunciation_simple':
         try:
             # Check if the request has a text `words` and `test_id` field
             if 'words' not in request.form or 'test_id' not in request.form:
@@ -157,7 +157,7 @@ def evaluation(type):
                 },
             ).to_dict()), 500, {'ContentType' : 'application/json'}
     
-    elif type == 'pronunciation_old':
+    elif type == 'pronunciation':
         # A flag to check if the corpus is already saved
         corpus_folder_path = None
         

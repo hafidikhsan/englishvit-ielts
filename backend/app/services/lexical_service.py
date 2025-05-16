@@ -552,8 +552,8 @@ class LexicalService:
             # Strip the html original sentence
             html_original_sentence = html_original_sentence.strip()
 
-            # Check if the lexical sophistication `advanced` is not empty and repetition words list is not empty
-            if lexical_sophistication['advanced'] and repetition_words_list:
+            # Check if the lexical sophistication `advanced` is not empty
+            if lexical_sophistication['advanced']:
                 # Change the html correction 
                 html_correction_lexical_sophistication = ', '.join([
                     f"<span style=\"color:green;\">{word}</span>" for word in lexical_sophistication['advanced']
@@ -561,7 +561,9 @@ class LexicalService:
 
                 # Add li tag to the html correction
                 html_correction += f"<li><p>Advance words: {html_correction_lexical_sophistication}</p></li>"
-
+                
+            # Check if the repetition words list is not empty
+            if repetition_words_list:
                 # Add the repetition words to the html correction
                 html_correction_repetition_words = ', '.join([
                     f"<span style=\"color:red;\">{word}</span>" for word in repetition_words_list
@@ -576,6 +578,25 @@ class LexicalService:
             # Add the correction sentence if it exists
             if html_correction != '':
                 final_html_feedback += f"<p><strong>Correction:</strong></p><ul>{html_correction}</ul>"
+
+            # Add the feedback variable
+            final_html_feedback += f"<p><strong>Feedback:</strong></p>"
+
+            # Add feedback based on count of the lexical sophistication error and repetition words
+            if len(lexical_sophistication['advanced']) > 3:
+                final_html_feedback += f"<p>Great use of advanced vocabulary! Keep up the good work and continue to challenge yourself with more complex texts.</p>"
+            elif len(lexical_sophistication['advanced']) > 0:
+                final_html_feedback += f"<p>Good use of advanced vocabulary, but there's room for improvement. Try incorporating more advanced words into your writing.</p>"
+            else:
+                final_html_feedback += f"<p>No advanced words found. Consider improving your vocabulary by reading diverse materials and practicing with more challenging texts.</p>"
+
+            if len(repetition_words_list) > 3:
+                final_html_feedback += f"<p>Many repetition words found. Consider varying your vocabulary to make your writing more engaging and less redundant.</p>"
+            elif len(repetition_words_list) > 0:
+                final_html_feedback += f"<p>Some repetition words found. Try to use synonyms or rephrase your sentences to avoid repetition and enhance clarity.</p>"
+            else:
+                final_html_feedback += f"<p>No repetition words found. Excellent work on maintaining a diverse and engaging vocabulary!</p>"
+
 
             # Add div in the feedback
             final_html_feedback = f'<div>{final_html_feedback}</div>'
