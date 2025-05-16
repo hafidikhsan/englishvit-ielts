@@ -98,12 +98,31 @@ def evaluation(type):
             with open(os.path.join(corpus_folder_path, f'{file_name}.txt'), 'w') as f:
                 f.write(transcribe)
 
+            # Prepare local temp folder for processing
+            tmp_corpus_folder_path = os.path.join('/app/tmp_audio', file_name)
+
+            # Clean tmp folder if exists
+            if os.path.exists(tmp_corpus_folder_path):
+                shutil.rmtree(tmp_corpus_folder_path)
+
+            # Copy corpus folder (audio + transcript) to tmp folder
+            shutil.copytree(corpus_folder_path, tmp_corpus_folder_path)
+
             # Evaluate the pronunciation
             evaluation = pronunciation_service.evaluate_pronunciation(
-                corpus_path = corpus_folder_path,
+                corpus_path = tmp_corpus_folder_path,
                 transcribe = transcribe,
                 words_timestamps = words_timestamps,
             )
+
+            # Copy generated TextGrid(s) or output files back to original folder
+            # Assuming your evaluation produces TextGrid file(s) inside tmp_corpus_folder_path
+            for file in os.listdir(tmp_corpus_folder_path):
+                if file.endswith('.TextGrid'):
+                    shutil.copy(
+                        os.path.join(tmp_corpus_folder_path, file),
+                        corpus_folder_path
+                    )
 
             # Send the result to backend
             if (request.headers.get('Authorization', '') != ''):
@@ -139,6 +158,7 @@ def evaluation(type):
 
             # Delete the folder
             shutil.rmtree(corpus_folder_path)
+            shutil.rmtree(tmp_corpus_folder_path)
 
             # Return the evaluation result
             return jsonify(EvResponseModel(

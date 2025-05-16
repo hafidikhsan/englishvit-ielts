@@ -17,7 +17,8 @@ services:
     networks:
       - app-network
     volumes:
-      - ./audio:/app/audio
+      - ./audio:/app/audio:rw
+      - mfa_tmp_data:/app/tmp_audio:rw
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
@@ -28,3 +29,7 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mfa_tmp_data:
+    driver: local

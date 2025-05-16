@@ -9,6 +9,7 @@ from textgrid import TextGrid
 from app.models.evaluation_model import EvEvaluationModel
 from app.utils.exception import EvServerException
 from app.utils.rounded_ielts_band import EvRoundedIELTSBand
+from app.utils.logger import ev_logger
 
 # MARK: PronunciationService
 class PronunciationService:
@@ -26,7 +27,7 @@ class PronunciationService:
         self.tool = 'mfa'
         self.task = 'align'
         self.acoustic_model = self.dictionary = 'english_us_arpa'
-        self.tags = '--single_speaker --workers 2'
+        self.tags = '--single_speaker --workers 2 -j 8'
         self.results_file_extension = 'TextGrid'
         self.phoneme_threshold = 0.06
         self.arpabert_to_ipa = {
@@ -300,15 +301,30 @@ class PronunciationService:
                 )
             
             try:
-                # Run the MFA tool to align the audio file with the transcription
-                subprocess.check_output([
+                ev_logger.info([
+                    'time',
                     self.tool,
                     self.task,
                     corpus_path,
                     self.dictionary,
                     self.acoustic_model,
                     corpus_path,
-                    self.tags,
+                    '--single_speaker',
+                    '--workers', '2',
+                    '-j', '8',
+                ])
+                # Run the MFA tool to align the audio file with the transcription
+                subprocess.check_output([
+                    'time',
+                    self.tool,
+                    self.task,
+                    corpus_path,
+                    self.dictionary,
+                    self.acoustic_model,
+                    corpus_path,
+                    '--single_speaker',
+                    '--workers', '2',
+                    '-j', '8',
                 ])
 
             except subprocess.CalledProcessError as e:
