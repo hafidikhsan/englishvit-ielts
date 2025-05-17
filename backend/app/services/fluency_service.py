@@ -474,7 +474,8 @@ class FluencyService:
             for (start, end), label in zip(spans, labels):
                 if label == 1:
                     for i in range(start, end):
-                        char_labels[i] = 1
+                        if i < len(char_labels):
+                            char_labels[i] = 1
         return char_labels
     
     # MARK: BuildHighlightedHtml

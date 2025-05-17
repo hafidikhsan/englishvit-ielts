@@ -580,26 +580,26 @@ class LexicalService:
                 final_html_feedback += f"<p><strong>Correction:</strong></p><ul>{html_correction}</ul>"
 
             # Add the feedback variable
-            final_html_feedback += f"<p><strong>Feedback:</strong></p>"
+            final_html_feedback += f"<p><strong>Feedback:</strong></p><p>"
 
             # Add feedback based on count of the lexical sophistication error and repetition words
             if len(lexical_sophistication['advanced']) > 3:
-                final_html_feedback += f"<p>Great use of advanced vocabulary! Keep up the good work and continue to challenge yourself with more complex texts.</p>"
+                final_html_feedback += f"Great use of advanced vocabulary! Keep up the good work and continue to challenge yourself with more complex texts."
             elif len(lexical_sophistication['advanced']) > 0:
-                final_html_feedback += f"<p>Good use of advanced vocabulary, but there's room for improvement. Try incorporating more advanced words into your writing.</p>"
+                final_html_feedback += f"Good use of advanced vocabulary, but there's room for improvement. Try incorporating more advanced words into your writing."
             else:
-                final_html_feedback += f"<p>No advanced words found. Consider improving your vocabulary by reading diverse materials and practicing with more challenging texts.</p>"
+                final_html_feedback += f"No advanced words found. Consider improving your vocabulary by reading diverse materials and practicing with more challenging texts."
 
             if len(repetition_words_list) > 3:
-                final_html_feedback += f"<p>Many repetition words found. Consider varying your vocabulary to make your writing more engaging and less redundant.</p>"
+                final_html_feedback += f"Many repetition words found. Consider varying your vocabulary to make your writing more engaging and less redundant."
             elif len(repetition_words_list) > 0:
-                final_html_feedback += f"<p>Some repetition words found. Try to use synonyms or rephrase your sentences to avoid repetition and enhance clarity.</p>"
+                final_html_feedback += f"Some repetition words found. Try to use synonyms or rephrase your sentences to avoid repetition and enhance clarity."
             else:
-                final_html_feedback += f"<p>No repetition words found. Excellent work on maintaining a diverse and engaging vocabulary!</p>"
+                final_html_feedback += f"No repetition words found. Excellent work on maintaining a diverse and engaging vocabulary!"
 
 
             # Add div in the feedback
-            final_html_feedback = f'<div>{final_html_feedback}</div>'
+            final_html_feedback = f'<div>{final_html_feedback}</p></div>'
 
             # Weighted average
             lexical_score = (

@@ -232,6 +232,9 @@ class OverallFeedbackService:
             # Randomly select feedback from the list
             overall_feedback = random.choice(potential_feedback)
 
+        # Add html tags to the feedback
+        overall_feedback = f'<p>{overall_feedback}</p>'
+
         # Get fluency feedback
         fluency_feedback = ''
 
@@ -419,6 +422,9 @@ class OverallFeedbackService:
         else:
             # General feedback
             fluency_feedback = 'No feedback available.'
+
+        # Add html tags to the feedback
+        fluency_feedback = f'<p>{fluency_feedback}</p>'
 
         # Get grammar feedback
         grammar_feedback = ''
@@ -608,6 +614,9 @@ class OverallFeedbackService:
             # General feedback
             grammar_feedback = 'No feedback available.'
 
+        # Add html tags to the feedback
+        grammar_feedback = f'<p>{grammar_feedback}</p>'
+
         # Get lexical feedback
         lexical_feedback = ''
 
@@ -777,6 +786,9 @@ class OverallFeedbackService:
         else:
             # General feedback
             lexical_feedback = 'No feedback available.'
+
+        # Add html tags to the feedback
+        lexical_feedback = f'<p>{lexical_feedback}</p>'
 
         # Get pronunciation feedback
         pronunciation_feedback = ''
@@ -964,6 +976,9 @@ class OverallFeedbackService:
         else:
             # General feedback
             pronunciation_feedback = 'No feedback available.'
+
+        # Add html tags to the feedback
+        pronunciation_feedback = f'<p>{pronunciation_feedback}</p>'
 
         # Create the overall evaluation model
         overall_evaluation = EvOverallEvaluationModel(
