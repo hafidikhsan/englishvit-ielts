@@ -769,15 +769,15 @@ def evaluation(type):
                 data = {
                     'finished': request.form.get('finished'),
                     'overall_band': evaluation.overall_band,
-                    'overall_feedback': json.dumps(evaluation.overall_feedback),
+                    'overall_feedback': evaluation.overall_feedback,
                     'fluency_band': evaluation.fluency_band,
-                    'fluency_feedback': json.dumps(evaluation.fluency_feedback),
+                    'fluency_feedback': evaluation.fluency_feedback,
                     'lexical_band': evaluation.lexical_band,
-                    'lexical_feedback': json.dumps(evaluation.lexical_feedback),
+                    'lexical_feedback': evaluation.lexical_feedback,
                     'grammar_band': evaluation.grammar_band,
-                    'grammar_feedback': json.dumps(evaluation.grammar_feedback),
+                    'grammar_feedback': evaluation.grammar_feedback,
                     'pronunciation_band': evaluation.pronunciation_band,
-                    'pronunciation_feedback': json.dumps(evaluation.pronunciation_feedback),
+                    'pronunciation_feedback': evaluation.pronunciation_feedback,
                 }
 
                 # Send the request to the Englishvit API
