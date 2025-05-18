@@ -272,7 +272,7 @@ def transcribe():
                 # Define the data
                 data = {
                     'transcribe': transcribe,
-                    'words': json.dumps(words),
+                    'words_timestamp': json.dumps(words),
                     'audio': audio_content,  # Add audio content as BLOB
                 }
 
