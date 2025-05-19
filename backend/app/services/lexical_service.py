@@ -419,6 +419,31 @@ class LexicalService:
         elif lexical_collocation_score >= 15: return 2
         else: return 1
 
+    # MARK: EvaluateWordCount
+    def _evaluate_word_count(self, transcribe: str) -> int:
+        '''
+        Function to evaluate the word count. This function will return the word count
+        of the transcribe. The word count will be calculated based on the tokenized words.
+        The function will return the word count of the transcribe.
+        '''
+
+        words_count = len(transcribe.strip().split())
+        
+        if words_count < 10:
+            return 3
+        elif words_count < 30:
+            return 4
+        elif words_count < 50:
+            return 5
+        elif words_count < 70:
+            return 6
+        elif words_count < 90:
+            return 7
+        elif words_count < 110:
+            return 8
+        else:
+            return 9
+
     # MARK: EvaluateLexical
     def evaluate_lexical(self, transcribe: str) -> EvEvaluationModel:
         ''' 
@@ -441,6 +466,7 @@ class LexicalService:
                     ''',
                     feedback_information = {
                         'cefr_classification': [],
+                        'word_count_ielts_band': 0,
                         'lexical_cefr_classification_band': 0,
                         'lexical_sophistication': {},
                         'lexical_sophistication_ielts_band': 0,
@@ -470,6 +496,9 @@ class LexicalService:
 
             # Calculate the final band of cefr classification
             lexical_cefr_classification_band = EvRoundedIELTSBand(np.mean(cefr_classification)).rounded_band
+
+            # Evaluate the word count
+            word_count_ielts_band = self._evaluate_word_count(transcribe)
 
             # Tokenize the word using word freq
             words_tokens = wordfreq_tokenize(transcribe, 'en')
@@ -584,18 +613,18 @@ class LexicalService:
 
             # Add feedback based on count of the lexical sophistication error and repetition words
             if len(lexical_sophistication['advanced']) > 3:
-                final_html_feedback += f"Great use of advanced vocabulary! Keep up the good work and continue to challenge yourself with more complex texts."
+                final_html_feedback += f"Great use of advanced vocabulary! Keep up the good work and continue to challenge yourself with more complex texts. "
             elif len(lexical_sophistication['advanced']) > 0:
-                final_html_feedback += f"Good use of advanced vocabulary, but there's room for improvement. Try incorporating more advanced words into your writing."
+                final_html_feedback += f"Good use of advanced vocabulary, but there's room for improvement. Try incorporating more advanced words into your writing. "
             else:
-                final_html_feedback += f"No advanced words found. Consider improving your vocabulary by reading diverse materials and practicing with more challenging texts."
+                final_html_feedback += f"No advanced words found. Consider improving your vocabulary by reading diverse materials and practicing with more challenging texts. "
 
             if len(repetition_words_list) > 3:
-                final_html_feedback += f"Many repetition words found. Consider varying your vocabulary to make your writing more engaging and less redundant."
+                final_html_feedback += f"Many repetition words found. Consider varying your vocabulary to make your writing more engaging and less redundant. "
             elif len(repetition_words_list) > 0:
-                final_html_feedback += f"Some repetition words found. Try to use synonyms or rephrase your sentences to avoid repetition and enhance clarity."
+                final_html_feedback += f"Some repetition words found. Try to use synonyms or rephrase your sentences to avoid repetition and enhance clarity. "
             else:
-                final_html_feedback += f"No repetition words found. Excellent work on maintaining a diverse and engaging vocabulary!"
+                final_html_feedback += f"No repetition words found. Excellent work on maintaining a diverse and engaging vocabulary! "
 
 
             # Add div in the feedback
@@ -603,8 +632,9 @@ class LexicalService:
 
             # Weighted average
             lexical_score = (
-                (lexical_cefr_classification_band * 0.25) +
-                (lexical_sophistication_ielts_band * 0.25) +
+                (lexical_cefr_classification_band * 0.1) +
+                (word_count_ielts_band * 0.1) +
+                (lexical_sophistication_ielts_band * 0.3) +
                 (lexical_diversity_ielts_band * 0.2) +
                 (repetition_words_ielts_band * 0.2) +
                 (lexical_collocation_ielts_band * 0.1)
@@ -619,6 +649,7 @@ class LexicalService:
                 readable_feedback = final_html_feedback,
                 feedback_information = {
                     'cefr_classification': cefr_classification,
+                    'word_count_ielts_band': word_count_ielts_band,
                     'lexical_cefr_classification_band': lexical_cefr_classification_band,
                     'lexical_sophistication': lexical_sophistication,
                     'lexical_sophistication_ielts_band': lexical_sophistication_ielts_band,
