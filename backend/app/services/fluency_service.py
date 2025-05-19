@@ -549,6 +549,18 @@ class FluencyService:
         elif token_classification_words_count < 15: return 1
         else: return 0
 
+    # MARK: DetectLinkingWordsNLTK
+    def _detect_linking_words_nltk(self, words: list) -> list[str]:
+        """
+        Detect potential linking words in a given text using NLTK's POS tagging.
+        Tags considered: 
+        - CC  = Coordinating conjunction (e.g., and, but)
+        - IN  = Subordinating conjunction/preposition (e.g., because, although)
+        - RB  = Adverb (used for discourse markers like however, therefore)
+        """
+        linking_candidates = [word['tag'] for word in words if word['tag'] in {"CC", "IN", "RB"}]
+        return linking_candidates
+
     # MARK: EvaluateFluency
     def evaluate_fluency(self, transcribe: str, words: list) -> EvEvaluationModel:
         '''
@@ -610,6 +622,29 @@ class FluencyService:
 
             # Evaluate the long pauses
             long_pauses_ielts_band = self._evaluate_long_pauses(len(long_pauses))
+
+            # Check if the words count is more than 2
+            if len(words) > 1:
+                # Get the first duration of the words
+                first_duration = np.float64(words[0]['start'])
+
+                # Check if the first duration is less than 0
+                if first_duration < 0:
+                    # Set the first duration to 0
+                    first_duration = 0
+
+                # Revise long pauses
+                if first_duration > 0.5:
+                    long_pauses_ielts_band -= 0.5
+                elif first_duration > 1:
+                    long_pauses_ielts_band -= 1
+                elif first_duration > 1.5:
+                    long_pauses_ielts_band -= 1.5
+                elif first_duration > 2:
+                    long_pauses_ielts_band -= 2
+
+                # Make sure long pauses ielts band is between 0 and 9
+                long_pauses_ielts_band = max(0, min(long_pauses_ielts_band, 9))
 
             # Predict the filled paused
             filled_paused_predict = self._get_predict_token_classification(
@@ -674,6 +709,13 @@ class FluencyService:
 
             # Evaluate the restart words
             restart_words_ielts_band = self._evaluate_token_classification(restart_words_timestamp)
+
+            # Get the word count of the transcribe
+            word_count = len(transcribe.split())
+
+            # Get the linking words
+            linking_words = self._detect_linking_words_nltk(words)
+            linking_present = len(linking_words) > 0
 
             # Get the labeled words based on the token classification
             char_label = self._combine_spans_and_labels(
@@ -761,6 +803,22 @@ class FluencyService:
             # Define html feedback
             html_feedback = ''
 
+            # Evaluate the word count and linking words
+            if word_count < 8:
+                # Add the feedback
+                html_feedback += 'Your sentence is too short. Try to make it longer. '
+            elif word_count < 12:
+                # Add the feedback
+                html_feedback += 'Your sentence is short. Try to make it longer. '
+            elif word_count < 18:
+                # Add the feedback
+                html_feedback += 'Your response could be more developed. Add linking ideas or more elaboration. '
+
+            # Evaluate the linking words
+            if word_count > 12 and not linking_present:
+                # Add the feedback
+                html_feedback += 'Try using linking words (e.g., because, so, however) to improve coherence. '
+
             # Evaluate the long pauses
             if len(long_pauses) > 0:
                 # Add the long pauses title
@@ -825,6 +883,25 @@ class FluencyService:
                 (restart_words_ielts_band * 0.1) +
                 (long_pauses_ielts_band * 0.2)
             )
+
+            # Revise the fluency score
+            if word_count < 8:
+                fluency_score = min(fluency_score, 5)
+            elif word_count < 12:
+                fluency_score = min(fluency_score, 6.0 if linking_present else 5.5)
+            elif word_count < 18:
+                fluency_score = min(fluency_score, 6.5 if linking_present else 6.0)
+
+            # Revise the fluency score
+            if word_count > 18 and not linking_present:
+                fluency_score -= 0.5
+            elif word_count > 18 and linking_present and len(linking_words) < 10:
+                fluency_score += 0.5
+            elif word_count > 18 and linking_present and len(linking_words) >= 10:
+                fluency_score += 1
+
+            # Make sure the fluency score is between 0 and 9
+            fluency_score = max(0, min(fluency_score, 9))
 
             # Rounded to ielts band
             final_ielts_band = EvRoundedIELTSBand(fluency_score).rounded_band
