@@ -69,13 +69,13 @@ class GrammarService:
             # Get the tokenizer
             self.grammarly_tokenizer = AutoTokenizer.from_pretrained(
                 self.grammarly_model_name, 
-                token = EvIELTSConfig.hugging_face_api_key
+                token = EvIELTSConfig.hugging_face_api_key,
             )
 
             # Get the model
             self.grammarly_model = T5ForConditionalGeneration.from_pretrained(
                 self.grammarly_model_name, 
-                token = EvIELTSConfig.hugging_face_api_key
+                token = EvIELTSConfig.hugging_face_api_key,
             )
 
             ev_logger.info(f'Successfully download {self.grammarly_model_name} √')
@@ -85,7 +85,7 @@ class GrammarService:
             # Get the model
             self.happy_model = HappyTextToText(
                 self.happy_base_model_name, 
-                self.happy_model_name
+                self.happy_model_name,
             )
 
             ev_logger.info(f'Successfully download {self.happy_model_name} √')
@@ -96,7 +96,7 @@ class GrammarService:
             self.open_source_pipeline = pipeline(
                 self.open_source_model_task,
                 self.open_source_model_name, 
-                token = EvIELTSConfig.hugging_face_api_key
+                token = EvIELTSConfig.hugging_face_api_key,
             )
 
             ev_logger.info(f'Successfully download {self.open_source_model_name} √')
@@ -179,13 +179,13 @@ class GrammarService:
             # Define arguments for the Happy transformer model
             args = TTSettings(
                 num_beams = 5,
-                min_length = 1
+                min_length = 1,
             )
 
             # Inference the text and add the prefix "grammar: " before each input
             result = self.happy_model.generate_text(
                 'grammar: ' + transcribe_text,
-                args = args
+                args = args,
             )
 
             # Return the GEC
@@ -196,7 +196,7 @@ class GrammarService:
             # Tokenize the input
             grammar_correction_input_ids = self.grammarly_tokenizer(
                 'Fix the grammar: ' + transcribe_text,
-                return_tensors = 'pt'
+                return_tensors = 'pt',
             ).input_ids
 
             # Inference the GEC model
@@ -208,7 +208,7 @@ class GrammarService:
             # Get the grammar correction
             grammar_corrector_output = self.grammarly_tokenizer.decode(
                 outputs[0],
-                skip_special_tokens = True
+                skip_special_tokens = True,
             )
 
             # Return the GEC
@@ -221,7 +221,7 @@ class GrammarService:
                 transcribe_text,
                 max_length = self.tokenizer_max_length,
                 num_beams = 5,
-                no_repeat_ngram_size = 2
+                no_repeat_ngram_size = 2,
             )
 
             # Return the GEC
@@ -916,49 +916,49 @@ class GrammarService:
                     # Add the feedback correction to the html
                     html_sentence_corrections.extend([feedback['html_feedback'] for feedback in grammar_accuracy_feedbacks_original])
 
-                # Get the grammar range structure
-                grammar_range_structure = self._get_sentence_structure(sentence)
+                    # Get the grammar range structure
+                    grammar_range_structure = self._get_sentence_structure(sentence)
 
-                # Add to the feedback
-                grammar_range_structure_feedback.append(grammar_range_structure)
+                    # Add to the feedback
+                    grammar_range_structure_feedback.append(grammar_range_structure)
 
-                # Get the grammar range feature
-                grammar_range_feature = self._get_grammar_feature(sentence)
+                    # Get the grammar range feature
+                    grammar_range_feature = self._get_grammar_feature(sentence)
 
-                # Loop through the feature
-                for key in grammar_range_feature.keys():
-                    # Check if the feature count more than 1
-                    if len(grammar_range_feature[key]) > 0:
-                        # Add to the grammar range feature feedback
-                        grammar_range_feature_feedback.append(key)
+                    # Loop through the feature
+                    for key in grammar_range_feature.keys():
+                        # Check if the feature count more than 1
+                        if len(grammar_range_feature[key]) > 0:
+                            # Add to the grammar range feature feedback
+                            grammar_range_feature_feedback.append(key)
 
-                # Get the grammar range tenses
-                grammar_range_tenses = self._get_grammar_sentence_tense(sentence)
+                    # Get the grammar range tenses
+                    grammar_range_tenses = self._get_grammar_sentence_tense(sentence)
 
-                # Loop through the tenses
-                for key in grammar_range_tenses.keys():
-                    # Check if the tenses count more than 1
-                    if len(grammar_range_tenses[key]) > 0:
-                        # Add to the grammar range tenses feedback
-                        grammar_range_tenses_feedback.append(key)
+                    # Loop through the tenses
+                    for key in grammar_range_tenses.keys():
+                        # Check if the tenses count more than 1
+                        if len(grammar_range_tenses[key]) > 0:
+                            # Add to the grammar range tenses feedback
+                            grammar_range_tenses_feedback.append(key)
 
-                # Get the grammar range functions
-                grammar_range_function = self._get_sentence_function(sentence)
+                    # Get the grammar range functions
+                    grammar_range_function = self._get_sentence_function(sentence)
 
-                # Add to the feedback
-                grammar_range_function_feedback.append(grammar_range_function)
+                    # Add to the feedback
+                    grammar_range_function_feedback.append(grammar_range_function)
 
-                # Add to feedback data
-                feedbacks.append({
-                    'sentence': sentence.text,
-                    'correction': correction_text,
-                    'grammar_accuracy_band': grammar_accuracy_band,
-                    'grammar_accuracy_feedbacks': grammar_accuracy_feedbacks,
-                    'grammar_range_structure': grammar_range_structure,
-                    'grammar_range_feature': grammar_range_feature,
-                    'grammar_range_tenses': grammar_range_tenses,
-                    'grammar_range_function': grammar_range_function,
-                })
+                    # Add to feedback data
+                    feedbacks.append({
+                        'sentence': sentence.text,
+                        'correction': correction_text,
+                        'grammar_accuracy_band': grammar_accuracy_band,
+                        'grammar_accuracy_feedbacks': grammar_accuracy_feedbacks,
+                        'grammar_range_structure': grammar_range_structure,
+                        'grammar_range_feature': grammar_range_feature,
+                        'grammar_range_tenses': grammar_range_tenses,
+                        'grammar_range_function': grammar_range_function,
+                    })
 
             # If the length of the feedback is 0
             if len(feedbacks) == 0:
@@ -1049,7 +1049,7 @@ class GrammarService:
                 final_html_feedback = f"<p><strong>Original Sentence:</strong></p><p>{' '.join(html_sentence)}</p>"
 
                 # Add the correction sentence if it exists
-                if html_sentence_corrections != '':
+                if len(html_sentence_corrections) > 0:
                     final_html_feedback += f"<p><strong>Correction:</strong></p><ul>{''.join(html_sentence_corrections)}</ul>"
 
                 # Add the feedback
