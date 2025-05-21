@@ -1,6 +1,7 @@
 # MARK: Imports
 # Dependencies
 import os
+import re
 import subprocess
 import numpy as np
 from textgrid import TextGrid
@@ -553,7 +554,7 @@ class PronunciationService:
     # MARK: JoinWordsWithSpacing
     def _join_words_with_spacing(self, word_list):
         result = ""
-        punctuation = {",", ".", "!", "?", ";", ":"}
+        punctuation = {",", ".", "!", "?", ";", ":", "'", '"', "(", ")", "[", "]", "{", "}", "-", "_", "—", "-"}
         for i, w in enumerate(word_list):
             # If word is punctuation, no leading space
             if w.strip() in punctuation:
@@ -562,17 +563,109 @@ class PronunciationService:
                 result += w + " "
         return result.strip()
     
-    # MARK: BuildWordListHTML
+    # MARK: MatchTokensToSpans
+    def _match_tokens_to_spans(self, transcription, tokens):
+        '''
+        Function to match the tokens to the spans in the transcription.
+        '''
+        # Initialize the list of spans
+        spans = []
+
+        # Initialize the pointer
+        ptr = 0
+
+        # Loop through the tokens
+        for token in tokens:
+            # Get the token lower case
+            token_lower = token.lower()
+            # Skip whitespace
+            while ptr < len(transcription) and transcription[ptr].isspace():
+                ptr += 1
+
+            # Look for token match
+            match_start = ptr
+
+            # Check if the token is in the transcription
+            match_end = match_start + len(token)
+
+            while transcription[match_start:match_end].lower() != token_lower and match_end <= len(transcription):
+                
+                match_start += 1
+                match_end = match_start + len(token)
+            if match_end <= len(transcription):
+                spans.append((match_start, match_end))
+                ptr = match_end
+            else:
+                # Fallback if can't find exact match
+                spans.append((ptr, ptr + len(token)))
+                ptr += len(token)
+        return spans
+    
+    # MARK: CombineSpansAndLabels
+    def _combine_spans_and_labels(self, transcription, token_label_lists):
+        '''
+        Function to combine the spans and labels.
+        '''
+        # Initialize the char_labels list with zeros
+        char_labels = [0] * len(transcription)
+
+        # Loop through the token label lists
+        for token_label_list in token_label_lists:
+            # Get the tokens and labels
+            tokens, labels = zip(*token_label_list)
+
+            # Get the spans from the tokens
+            spans = self._match_tokens_to_spans(transcription, tokens)
+            for (start, end), label in zip(spans, labels):
+                if label == 'bad':
+                    for i in range(start, end):
+                        if i < len(char_labels):
+                            char_labels[i] = 2
+                elif label == 'warning':
+                    for i in range(start, end):
+                        if i < len(char_labels):
+                            char_labels[i] = 1
+        return char_labels
+    
+    # MARK: BuildHighlightedHtml
+    def _build_highlighted_html(self, transcription, char_labels):
+        output = ""
+        i = 0
+        while i < len(transcription):
+            if char_labels[i] == 2:
+                output += '<span style="color:red">'
+                while i < len(transcription) and char_labels[i] == 2:
+                    output += transcription[i]
+                    i += 1
+                output += '</span>'
+            elif char_labels[i] == 1:
+                output += '<span style="color:yellow">'
+                while i < len(transcription) and char_labels[i] == 1:
+                    output += transcription[i]
+                    i += 1
+                output += '</span>'
+            else:
+                output += transcription[i]
+                i += 1
+
+        return f'<p>{output}</p>'
+    
+    # MARK: BuildWordListHTML1
     def _build_word_list_html(self, words_list, category_name):
-        if not words_list:
-            return f"<li>No {category_name} words found.</li>"
         items = ""
         for w in words_list:
-            items += f'<li><strong>{w["text"]}</strong></li>'
+            text = w["text"]
+            chars = re.findall(r'[a-zA-Z0-9]', text)
+            if len(chars) > 0:
+                items += f'<li><strong>{text}</strong></li>'
+
+        if items == "" or not words_list:
+            items = f"<li>No {category_name} words found.</li>"
+
         return items
     
     # MARK: EvaluatePronunciation
-    def evaluate_pronunciation_new(self, words_timestamps: list) -> EvEvaluationModel:
+    def evaluate_pronunciation_new(self, words_timestamps: list, transcribe: str) -> EvEvaluationModel:
         try:
             # Check if words_timestamps is empty
             if words_timestamps == []:
@@ -593,12 +686,14 @@ class PronunciationService:
             highlighted_sentence = []
             warnings = []
             bads = []
+            predict = []
             GOOD_THRESHOLD = 0.90
             WARNING_THRESHOLD = 0.80    
 
             for w in words_timestamps:
                 conf = w["confidence"]
                 text = w["text"]
+                category = None
 
                 if conf >= GOOD_THRESHOLD:
                     category = "good"
@@ -612,15 +707,22 @@ class PronunciationService:
                     highlighted_sentence.append(f'<span style="color: red;">{text}</span>')
                     bads.append(w)
 
+                predict.append([text, category])
+
             # Calculate average confidence
             avg_confidence = sum(w["confidence"] for w in words_timestamps) / len(words_timestamps)
             ielts_band = self._map_confidence_to_ielts_band(avg_confidence)
             sentence_html = self._join_words_with_spacing(highlighted_sentence)
+            char_label = self._combine_spans_and_labels(
+                transcribe, 
+                [predict]
+            )
+            html_original_sentence = self._build_highlighted_html(transcribe, char_label)
             warnings_html = self._build_word_list_html(warnings, "warning")
             bads_html = self._build_word_list_html(bads, "bad")
             return EvEvaluationModel(
                 ielts_band = ielts_band,
-                readable_feedback = f'''<div><p><strong>Original Sentence:</strong></p>{sentence_html}<p><strong>Warning words:</strong></strong></p><ul>{warnings_html}</ul><p><strong>Bad words:</strong></strong></p><ul>{bads_html}</ul></div>''',
+                readable_feedback = f'''<div><p><strong>Original Sentence:</strong></p>{html_original_sentence}<p><strong>Warning words:</strong></p><ul>{warnings_html}</ul><p><strong>Bad words:</strong></p><ul>{bads_html}</ul></div>''',
                 feedback_information = {
                     'avg_confidence': avg_confidence,
                     'warnings': warnings_html,

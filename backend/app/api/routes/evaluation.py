@@ -30,8 +30,8 @@ def evaluation(type):
     # MARK: Pronunciation
     if type == 'pronunciation_simple':
         try:
-            # Check if the request has a text `words` and `test_id` field
-            if 'words' not in request.form or 'test_id' not in request.form:
+            # Check if the request has a text `words`, `transcribe`, and `test_id` field
+            if 'words' not in request.form or 'test_id' not in request.form or 'transcribe' not in request.form:
                 # Define the error message
                 message = 'Invalid request, transcribe and words are required'
 
@@ -44,6 +44,7 @@ def evaluation(type):
                 )
             # Get the words
             words = request.form.get('words')
+            transcribe = request.form.get('transcribe')
 
             # Declare words timestamps
             words_timestamps = []
@@ -56,6 +57,7 @@ def evaluation(type):
             # Evaluate the pronunciation
             evaluation = pronunciation_service.evaluate_pronunciation_new(
                 words_timestamps = words_timestamps,
+                transcribe = transcribe,
             )
 
             # Send the result to backend
