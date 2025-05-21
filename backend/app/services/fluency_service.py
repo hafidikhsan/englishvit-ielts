@@ -895,10 +895,8 @@ class FluencyService:
             # Revise the fluency score
             if word_count > 18 and not linking_present:
                 fluency_score -= 0.5
-            elif word_count > 18 and linking_present and len(linking_words) < 10:
-                fluency_score += 0.5
-            elif word_count > 18 and linking_present and len(linking_words) >= 10:
-                fluency_score += 1
+            elif word_count > 12 and not linking_present:
+                fluency_score -= 1
 
             # Make sure the fluency score is between 0 and 9
             fluency_score = max(0, min(fluency_score, 9))
