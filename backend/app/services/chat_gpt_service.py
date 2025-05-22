@@ -97,7 +97,7 @@ class EvChatGPTService:
         try:
             # Define Client
             client = OpenAI(
-              api_key = EvIELTSConfig.chatgpt_key,
+              api_key = EvIELTSConfig.openai_api_key,
             )
             # Define Prompt
             system_prompt = f"""
