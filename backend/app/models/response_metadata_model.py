@@ -1,6 +1,6 @@
 # MARK: Import
 # Dependencies
-import datetime
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 # Modules
@@ -12,5 +12,5 @@ class EvResponseMetadataModel(BaseModel):
     code: int
     status: str
     message: str
-    timestamp: datetime.datetime = Field(default_factory=datetime.datetime.now())
+    timestamp: datetime = Field(default_factory=datetime.now())
     app_version: str = EvIELTSConfig.app_version
