@@ -13,10 +13,9 @@ from app.models.response_metadata_model import EvResponseMetadataModel
 from app.utils.exception import EvClientException, EvServerException, EvException
 from app.utils.logger import ev_logger
 
-# Get the directory
-JSON_DIR = os.path.join(current_app.root_path, "..", "json_data")
-JSON_DIR = os.path.abspath(JSON_DIR)
-os.makedirs(JSON_DIR, exist_ok=True)
+# Get the JSON directory
+def get_json_dir():
+    return os.path.abspath(os.path.join(current_app.root_path, "..", "json_data"))
 
 # MARK: Information
 @api_bp.route('/information/<type>', methods=['GET', 'POST'])
@@ -26,11 +25,12 @@ def information(type: str):
     about the IELTS feature.
     '''
     try:
-        ev_logger.info(JSON_DIR)
+        json_dir = get_json_dir()
+        ev_logger.info(json_dir)
         # If the information type is test
         if type == 'test':
             # Define the filename
-            file_path = os.path.join(JSON_DIR, "information_test.json")
+            file_path = os.path.join(json_dir, "information_test.json")
             ev_logger.info(file_path)
             ev_logger.info(os.path.exists(file_path))
 
@@ -113,7 +113,7 @@ def information(type: str):
         # If the information type is speaking introduction
         elif type == 'speaking-intro':
             # Define the filename
-            file_path = os.path.join(JSON_DIR, "speaking_simulation_intro.json")
+            file_path = os.path.join(json_dir, "speaking_simulation_intro.json")
             ev_logger.info(file_path)
             ev_logger.info(os.path.exists(file_path))
 
