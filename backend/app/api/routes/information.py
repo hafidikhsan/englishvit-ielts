@@ -11,9 +11,11 @@ from app.api.routes import api_bp
 from app.models.response_model import EvResponseModel
 from app.models.response_metadata_model import EvResponseMetadataModel
 from app.utils.exception import EvClientException, EvServerException, EvException
+from app.utils.logger import ev_logger
 
 # Get the directory
-JSON_DIR = "../../../json_data"
+JSON_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ))
+os.makedirs(JSON_DIR, exist_ok=True)
 
 # MARK: Information
 @api_bp.route('/information/<type>', methods=['GET', 'POST'])
@@ -23,10 +25,13 @@ def information(type: str):
     about the IELTS feature.
     '''
     try:
+        ev_logger.info(JSON_DIR)
         # If the information type is test
         if type == 'test':
             # Define the filename
             file_path = os.path.join(JSON_DIR, "information_test.json")
+            ev_logger.info(file_path)
+            ev_logger.info(os.path.exists(file_path))
 
             # If GET request, return the information
             if request.method == 'GET':
@@ -108,6 +113,8 @@ def information(type: str):
         elif type == 'speaking-intro':
             # Define the filename
             file_path = os.path.join(JSON_DIR, "speaking_simulation_intro.json")
+            ev_logger.info(file_path)
+            ev_logger.info(os.path.exists(file_path))
 
             # If GET request, return the information
             if request.method == 'GET':
