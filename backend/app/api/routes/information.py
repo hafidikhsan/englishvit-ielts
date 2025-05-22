@@ -13,8 +13,7 @@ from app.models.response_metadata_model import EvResponseMetadataModel
 from app.utils.exception import EvClientException, EvServerException, EvException
 
 # Get the directory
-JSON_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../json_data"))
-os.makedirs(JSON_DIR, exist_ok=True)
+JSON_DIR = "../../../json_data"
 
 # MARK: Information
 @api_bp.route('/information/<type>', methods=['GET', 'POST'])
