@@ -22,4 +22,4 @@ def api_base():
             'message': 'API is running',
         }
     )
-    return jsonify(response.json()), 200, {'ContentType' : 'application/json'}
+    return jsonify(response.model_dump()), 200, {'ContentType' : 'application/json'}

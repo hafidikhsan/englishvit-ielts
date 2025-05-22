@@ -329,7 +329,7 @@ def transcribe():
         )
 
         # Return the data
-        return jsonify(response_data.json()), 200, {'ContentType' : 'application/json'}
+        return jsonify(response_data.model_dump()), 200, {'ContentType' : 'application/json'}
     
     except EvException as error:
         # Check if the audio file is saved and delete it
@@ -350,7 +350,7 @@ def transcribe():
         )
 
         # Return the error message
-        return jsonify(response_data.json()), error.status_code, {'ContentType' : 'application/json'}
+        return jsonify(response_data.model_dump()), error.status_code, {'ContentType' : 'application/json'}
     
     except Exception as error:
         # Check if the audio file is saved and delete it
@@ -371,4 +371,4 @@ def transcribe():
         )
 
         # Return the error message
-        return jsonify(response_data.json()), 500, {'ContentType' : 'application/json'}
+        return jsonify(response_data.model_dump()), 500, {'ContentType' : 'application/json'}
