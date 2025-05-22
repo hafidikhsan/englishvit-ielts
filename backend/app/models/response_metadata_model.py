@@ -12,5 +12,5 @@ class EvResponseMetadataModel(BaseModel):
     code: int
     status: str
     message: str
-    timestamp: datetime = Field(default_factory=datetime.now())
+    timestamp: datetime | None
     app_version: str = EvIELTSConfig.app_version
