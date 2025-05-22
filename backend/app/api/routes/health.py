@@ -13,7 +13,7 @@ from app.services.chat_gpt_service import chatgpt_service
 from app.models.response_model import EvResponseModel
 from app.models.response_metadata_model import EvResponseMetadataModel
 
-# MARK: Information
+# MARK: Health
 @api_bp.route('/health', methods = ['GET'])
 def health():
     '''

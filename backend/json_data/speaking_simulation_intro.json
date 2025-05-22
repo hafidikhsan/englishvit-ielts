@@ -1,0 +1,91 @@
+[
+  {
+    "descriptions": [
+      "<p>In this part of the test, the examiner will ask you questions about yourself and your home.</p>",
+      "<p><strong>No pressure</strong> — just imagine you're having a casual chat!</p>"
+    ],
+    "instructions": [
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "You'll get 3-7 questions from our AI"
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Speak for 30-60 seconds per question."
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Think of this as a real conversation, not a test 😊"
+      }
+    ],
+    "label": "Part 1",
+    "next_part": "part 2",
+    "outro_message": "You've finished the first part of your speaking test. Keep going!",
+    "tips": {
+      "image_url": "assets/new/svg/lamp.svg",
+      "title": "Practice your pronunciation daily — it can boost your band score by up to 0.5 points!"
+    },
+    "title": "Introduction and interviews"
+  },
+  {
+    "descriptions": [
+      "<p>You'll get 1 topic, have 1 minute to think, then speak for 1-2 minutes nonstop.</p>",
+      "<p>Just pretend you're telling a story to a friend.</p>"
+    ],
+    "instructions": [
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "The topic will appear on screen (just like an IELTS task card)"
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "1 minute to prepare"
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Speak solo for 1-2 minutes"
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Stay relaxed, like you're chatting with a friend"
+      }
+    ],
+    "label": "Part 2",
+    "next_part": "part 3",
+    "outro_message": "You've finished the second part of your speaking test. Keep going!",
+    "tips": {
+      "image_url": "assets/new/svg/lamp.svg",
+      "title": "Use this structure: Opening - Details - Closing. It doesn't need to be perfect — just keep the story flowing!"
+    },
+    "title": "Individual long turn"
+  },
+  {
+    "descriptions": [
+      "<p>The final part of your test.</p>",
+      "<p>You'll answer follow-up questions based on Part 2.</p>"
+    ],
+    "instructions": [
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Listen to the question carefully."
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Wait 5 seconds after the question finishes."
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Answer with details (1-2 minutes)."
+      },
+      {
+        "image_url": "assets/new/svg/check.svg",
+        "title": "Give examples to support your answer."
+      }
+    ],
+    "label": "Part 3",
+    "next_part": null,
+    "outro_message": "You've finished the third part of your speaking test. Well done!",
+    "tips": null,
+    "title": "Two-way discussion"
+  }
+]

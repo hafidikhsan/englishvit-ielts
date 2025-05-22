@@ -18,6 +18,7 @@ services:
       - app-network
     volumes:
       - ./audio:/app/audio
+      - ./json_data:/app/json_data
 
 networks:
   app-network:

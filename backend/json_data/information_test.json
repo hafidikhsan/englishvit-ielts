@@ -1,0 +1,174 @@
+[
+  {
+    "button_text": "Scoring criteria",
+    "content": [
+      {
+        "content": null,
+        "description": "The test will be conducted in three parts",
+        "image_url": null,
+        "label": null,
+        "subtitle": null,
+        "title": "Test structure",
+        "type": 0
+      },
+      {
+        "content": null,
+        "description": "You'll get asked simple questions about work, hobbies, or where you live. Just answer like you're chatting with a friend.",
+        "image_url": "assets/new/svg/timer.svg",
+        "label": "Part 1",
+        "subtitle": "Duration: 4-5 minutes",
+        "title": "Introduction and interviews",
+        "type": 1
+      },
+      {
+        "content": null,
+        "description": "You'll get a topic + 1 min to think → then talk for 2 mins nonstop. Feels like a mini monologue — chill and go with the flow!",
+        "image_url": "assets/new/svg/timer.svg",
+        "label": "Part 2",
+        "subtitle": "Duration: 3-4 minutes",
+        "title": "Individual Long Turn",
+        "type": 1
+      },
+      {
+        "content": null,
+        "description": "Follow-up questions from Part 2. You'll share your opinions, reasons, and go a bit deeper in thought.",
+        "image_url": "assets/new/svg/timer.svg",
+        "label": "Part 3",
+        "subtitle": "Duration: 3-4 minutes",
+        "title": "Two-way discussion",
+        "type": 1
+      }
+    ],
+    "information": "Tap here to see what the AI examiner is actually looking for.",
+    "subtitle": "What's the IELTS Speaking test like? Let's break it down so you don't feel lost when it starts!",
+    "title": "Let's get to know the test!"
+  },
+  {
+    "button_text": "Let's start the test!",
+    "content": [
+      {
+        "content": [
+          {
+            "image_url": null,
+            "title": "No need to rush — just talk like you're telling a story that flows."
+          },
+          {
+            "image_url": null,
+            "title": "Just make it flows, avoid \"umm, ahh..\""
+          }
+        ],
+        "description": "Can you speak smoothly and connect your thoughts clearly?",
+        "image_url": "assets/new/images/fluency.webp",
+        "label": null,
+        "subtitle": null,
+        "title": "Fluency & Coherence",
+        "type": 2
+      },
+      {
+        "content": [
+          {
+            "image_url": null,
+            "title": "Try new vocab, don't repeat the same words. Sprinkle in expressions that show your personality!"
+          },
+          {
+            "image_url": null,
+            "title": "Avoid using same vocabularies."
+          }
+        ],
+        "description": "Are you using a good mix of words?",
+        "image_url": "assets/new/images/lexical.webp",
+        "label": null,
+        "subtitle": null,
+        "title": "Lexical Resource",
+        "type": 2
+      },
+      {
+        "content": [
+          {
+            "image_url": null,
+            "title": "Mix your sentence types — it's okay to slip up, just show that you've got range."
+          },
+          {
+            "image_url": null,
+            "title": "Show various tenses and structures."
+          }
+        ],
+        "description": "Are your sentences accurate and varied?",
+        "image_url": "assets/new/images/grammar.webp",
+        "label": null,
+        "subtitle": null,
+        "title": "Grammatical Range & Accuracy",
+        "type": 2
+      },
+      {
+        "content": [
+          {
+            "image_url": null,
+            "title": "Clarity matters more than accent. Speak clearly and use natural rhythm."
+          },
+          {
+            "image_url": null,
+            "title": "Focus on clarity, not accent!"
+          }
+        ],
+        "description": "Is it easy to understand what you're saying?",
+        "image_url": "assets/new/images/pronunciation.webp",
+        "label": null,
+        "subtitle": null,
+        "title": "Pronunciation",
+        "type": 2
+      }
+    ],
+    "information": "No one's here to grade you harshly. Think of this as your smart practice buddy who knows what IELTS expects.",
+    "subtitle": "There are 4 key things we're paying attention to. Not to judge — but to help you grow. 😉",
+    "title": "What Are You Really Judged On?"
+  },
+  {
+    "button_text": "Let's Go!! 🚀",
+    "content": [
+      {
+        "content": [
+          {
+            "image_url": "assets/new/svg/mic.svg",
+            "title": "Check Mic"
+          },
+          {
+            "image_url": "assets/new/svg/voice.svg",
+            "title": "Check Speaker"
+          }
+        ],
+        "description": null,
+        "image_url": "assets/new/svg/headphone.svg",
+        "label": null,
+        "subtitle": "Tip: Use a headset for better clarity!",
+        "title": "Check Your Audio First:",
+        "type": 3
+      },
+      {
+        "content": [
+          {
+            "image_url": "assets/new/svg/check.svg",
+            "title": "You've got a pen & paper ready."
+          },
+          {
+            "image_url": "assets/new/svg/check.svg",
+            "title": "Your internet is stable."
+          },
+          {
+            "image_url": "assets/new/svg/check.svg",
+            "title": "You stay on this page during the test."
+          }
+        ],
+        "description": null,
+        "image_url": null,
+        "label": null,
+        "subtitle": null,
+        "title": "Before You Start, Make Sure:",
+        "type": 0
+      }
+    ],
+    "information": null,
+    "subtitle": "Relax — think of it like a casual conversation.",
+    "title": "Let's Start Your IELTS Test!"
+  }
+]
