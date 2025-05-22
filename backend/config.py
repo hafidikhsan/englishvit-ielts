@@ -16,8 +16,8 @@ class EvIELTSConfig:
 
     # MARK: AI
     whisper_model = os.getenv('WHISPER_MODEL')
-    chatgpt_model = int(os.getenv('CHATGPT_MODEL'))
-    openai_api_key = int(os.getenv('OPENAI_API_KEY'))
+    chatgpt_model = os.getenv('CHATGPT_MODEL')
+    openai_api_key = os.getenv('OPENAI_API_KEY')
 
     # MARK: Logging
     log_level = os.getenv('LOG_LEVEL')
