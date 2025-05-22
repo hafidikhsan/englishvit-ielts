@@ -93,6 +93,16 @@ class EvChatGPTService:
 
         ev_logger.info(f"Successfully update prompt √")
 
+    # MARK: GetPrompt
+    def get_prompt(self):
+        # Get prompt
+        return {
+            "fluency_prompt": self.fluency_prompt,
+            "lexical_prompt": self.lexical_prompt,
+            "grammar_prompt": self.grammar_prompt,
+            "pronunciation_prompt": self.pronunciation_prompt,
+        }
+
     # MARK: Evaluate
     def evaluate(self, question: str, answer: str) -> EvChatGPTEvaluationModel:
         try:

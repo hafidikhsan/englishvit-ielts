@@ -11,7 +11,9 @@ from app.models.response_metadata_model import EvResponseMetadataModel
 
 # Routes
 from app.api.routes.evaluation import *
+from app.api.routes.health import *
 from app.api.routes.overall_feedback import *
+from app.api.routes.settings import *
 from app.api.routes.transcribe import *
 
 @api_bp.route('/', methods = ['GET'])
