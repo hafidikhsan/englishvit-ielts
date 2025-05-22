@@ -2,7 +2,7 @@
 # Dependencies
 import os
 import json
-from flask import jsonify, request
+from flask import jsonify, request, current_app
 
 # Routes
 from app.api.routes import api_bp
@@ -14,7 +14,8 @@ from app.utils.exception import EvClientException, EvServerException, EvExceptio
 from app.utils.logger import ev_logger
 
 # Get the directory
-JSON_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ))
+JSON_DIR = os.path.join(current_app.root_path, "..", "json_data")
+JSON_DIR = os.path.abspath(JSON_DIR)
 os.makedirs(JSON_DIR, exist_ok=True)
 
 # MARK: Information
