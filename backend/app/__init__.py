@@ -26,24 +26,12 @@ def create_app():
     app.register_blueprint(api_bp, url_prefix = '/api')
 
     # Load the ASR model
-    ev_logger.info('Start downloading ASR model ...')
+    ev_logger.info('Start ASR service ...')
     from app.services.asr_service import asr_service
-    ev_logger.info('ASR model downloaded successfully √')
-    ev_logger.info('Start downloading Spacy model ...')
-    from app.services.spacy_service import spacy_service
-    ev_logger.info('Spacy model downloaded successfully √')
-    ev_logger.info('Start downloading Fluency model ...')
-    from app.services.fluency_service import fluency_service
-    ev_logger.info('Fluency model downloaded successfully √')
-    ev_logger.info('Start downloading Grammar model ...')
-    from app.services.grammar_service import grammar_service
-    ev_logger.info('Grammar model downloaded successfully √')
-    ev_logger.info('Start downloading Lexical model ...')
-    from app.services.lexical_service import lexical_service
-    ev_logger.info('Lexical model downloaded successfully √')
-    ev_logger.info('Start downloading Pronunciation model ...')
-    from app.services.pronunciation_service import pronunciation_service
-    ev_logger.info('Pronunciation model downloaded successfully √')
+    ev_logger.info('ASR service successfully started √')
+    ev_logger.info('Start ChatGPT service ...')
+    from app.services.chat_gpt_service import chatgpt_service
+    ev_logger.info('ChatGPT service successfully started √')
     
     # Return the app instance
     return app

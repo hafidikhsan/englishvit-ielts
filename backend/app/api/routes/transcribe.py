@@ -14,8 +14,9 @@ from app.services.asr_service import asr_service
 
 # Modules
 from config import EvIELTSConfig
-from app.utils.exception import EvServerException, EvClientException, EvAPIException
+from app.utils.exception import EvServerException, EvClientException, EvAPIException, EvException
 from app.models.response_model import EvResponseModel
+from app.models.response_metadata_model import EvResponseMetadataModel
 
 # MARK: ConvertAudioToWav
 def _convert_audio_to_wav(original_path: str) -> str:
@@ -95,7 +96,7 @@ def _convert_audio_to_wav(original_path: str) -> str:
         # Return the output file path
         return output_path
     
-    except EvServerException as error:
+    except EvException as error:
         # Re-raise the error
         raise error
     
@@ -138,7 +139,7 @@ def _delete_audio_file(file_path: str) -> None:
                 }
             )
     
-    except EvServerException as error:
+    except EvException as error:
         # Re-raise the error
         raise error
     
@@ -153,7 +154,7 @@ def _delete_audio_file(file_path: str) -> None:
                 'message': message,
             }
         )
-
+    
 # MARK: Transcribe
 @api_bp.route('/transcribe', methods = ['POST'])
 def transcribe():
@@ -255,7 +256,18 @@ def transcribe():
         audio_file_path = output_path
 
         # Transcribe the audio file
-        (transcribe, words) = asr_service.process_audio(audio_file_path)
+        transcribe_data = asr_service.transcribe(audio_file_path)
+
+        # Get the transcribe
+        transcribe = transcribe_data['text']
+
+        # Define the words
+        words = []
+
+        # Loop through the segments
+        for segment in transcribe_data['segments']:
+            # Append the word to the list
+            words.extend(segment['words'])
 
         # Send the result to backend
         if (request.headers.get('Authorization', '') != ''):
@@ -273,7 +285,7 @@ def transcribe():
                 data = {
                     'transcribe': transcribe,
                     'words_timestamp': json.dumps(words),
-                    'audio': audio_content,  # Add audio content as BLOB
+                    'audio': audio_content, 
                 }
 
                 # Send the request to the Englishvit API
@@ -302,85 +314,61 @@ def transcribe():
         # Set audio file saved flag
         audio_file_path = None
 
-        # Return the data
-        return jsonify(EvResponseModel(
-            code = 200,
-            status = 'Success',
-            message = 'Transcribe successful',
+        # Define the response model data
+        response_data = EvResponseModel(
+            metadata = EvResponseMetadataModel(
+                code = 200,
+                status = 'Success',
+                message = 'Transcribe successful',
+            ),
             data = {
                 'transcribe': transcribe,
                 'words': words,
                 'test_id': request.form['test_id'],
-            },
-        ).to_dict()), 200, {'ContentType' : 'application/json'}
-        
-    except EvClientException as error:
-        # Check if the audio file is saved and delete it
-        if audio_file_path:
-            _delete_audio_file(audio_file_path)
+            }
+        )
 
-        # Return the error message
-        return jsonify(EvResponseModel(
-            code = error.status_code,
-            status = 'Error',
-            message = error.message,
-            data = {
-                'error': {
-                    'message': error.message,
-                    'information': error.information,
-                },
-            },
-        ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        # Return the data
+        return jsonify(response_data.json()), 200, {'ContentType' : 'application/json'}
     
-    except EvServerException as error:
+    except EvException as error:
         # Check if the audio file is saved and delete it
         if audio_file_path:
             _delete_audio_file(audio_file_path)
 
-        # Return the error message
-        return jsonify(EvResponseModel(
-            code = error.status_code,
-            status = 'Error',
-            message = error.message,
+        # Define the response model data
+        response_data = EvResponseModel(
+            metadata = EvResponseMetadataModel(
+                code = error.status_code,
+                status = 'Error',
+                message = error.message,
+            ),
             data = {
-                'error': {
-                    'message': error.message,
-                    'information': error.information,
-                },
-            },
-        ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
-    
-    except EvAPIException as error:
-        # Check if the audio file is saved and delete it
-        if audio_file_path:
-            _delete_audio_file(audio_file_path)
+                'message': error.message,
+                'information': error.information,
+            }
+        )
 
         # Return the error message
-        return jsonify(EvResponseModel(
-            code = error.status_code,
-            status = 'Error',
-            message = error.message,
-            data = {
-                'error': {
-                    'message': error.message,
-                    'information': error.information,
-                },
-            },
-        ).to_dict()), error.status_code, {'ContentType' : 'application/json'}
+        return jsonify(response_data.json()), error.status_code, {'ContentType' : 'application/json'}
     
     except Exception as error:
         # Check if the audio file is saved and delete it
         if audio_file_path:
             _delete_audio_file(audio_file_path)
 
-        # Return the error message
-        return jsonify(EvResponseModel(
-            code = 500,
-            status = 'Error',
-            message = 'Internal server error',
+        # Define the response model data
+        response_data = EvResponseModel(
+            metadata = EvResponseMetadataModel(
+                code = 500,
+                status = 'Error',
+                message = 'Internal server error',
+            ),
             data = {
-                'error': {
-                    'message': str(error),
-                },
-            },
-        ).to_dict()), 500, {'ContentType' : 'application/json'}
+                'message': 'Internal server error',
+                'information': str(error),
+            }
+        )
+
+        # Return the error message
+        return jsonify(response_data.json()), 500, {'ContentType' : 'application/json'}

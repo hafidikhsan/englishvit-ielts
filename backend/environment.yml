@@ -3,27 +3,16 @@ channels:
   - conda-forge
 dependencies:
   - python=3.11
-  - joblib=1.4.2
-  - montreal-forced-aligner
   - pip
   - pip:
-      - textgrid
       - requests
       - pydub
       - flask
       - flask_cors
       - numpy
       - datetime
-      - nltk
-      - spacy
-      - wordfreq
-      - statistics
-      - lexical_diversity
       - gunicorn
       - python-dotenv
-      - whisper-timestamped
-      - happytransformer
-      - onnxruntime
-      - torch
-      - torchaudio
-      - transformers
+      - openai-whisper
+      - openai
+      - pydantic

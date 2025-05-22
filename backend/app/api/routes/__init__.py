@@ -1,27 +1,25 @@
 # MARK: Import 
 # Dependencies
-from flask import Blueprint
+from flask import jsonify, Blueprint
 
 # Create a blueprint for the API
 api_bp = Blueprint('/api', __name__)
 
-# Routes
-from app.api.routes.transcribe import *
-from app.api.routes.evaluation import *
-from app.api.routes.information import *
-from app.api.routes.health import *
-from app.api.routes.model import *
-
 # Modules
 from app.models.response_model import EvResponseModel
+from app.models.response_metadata_model import EvResponseMetadataModel
 
 @api_bp.route('/', methods = ['GET'])
 def api_base():
-    return jsonify(EvResponseModel(
-        code = 200,
-        status = 'Success',
-        message = 'API check successful',
+    # Define the response model
+    response = EvResponseModel(
+        metadata = EvResponseMetadataModel(
+            code = 200,
+            status = 'Success',
+            message = 'API check successful',
+        ),
         data = {
             'message': 'API is running',
         }
-    ).to_dict()), 200, {'ContentType' : 'application/json'}
+    )
+    return jsonify(response.json()), 200, {'ContentType' : 'application/json'}
