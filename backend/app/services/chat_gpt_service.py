@@ -113,7 +113,7 @@ class EvChatGPTService:
             {self.pronunciation_prompt}
 
             Provide feedback for each evaluation metrics with
-            - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules)
+            - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules like 6.5, 7.0, 7.5 don't use 6.1, 6.2, 6.3)
             - 'feedback' 2-7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
             - Bullet point like 2 or 7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
             - Make the 'feedback' short and motivating, written in a style that's friendly for Gen Z learners.
@@ -158,7 +158,7 @@ class EvChatGPTService:
             You are an IELTS Speaking examiner expert that have attention to the detail and precision, evaluate overall IELTS speaking simulation of this candidate based on speaking simulation history.
 
             Provide feedback for each evaluation metrics  and the overall with
-            - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules)
+            - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules like 6.5, 7.0, 7.5 don't use 6.1, 6.2, 6.3)
             - 'readable_feedback' with 2-7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
             - Make the 'readable_feedback' short and motivating, written in a style that's friendly for Gen Z learners.
             - Use a conversational tone (like you're giving advice to a peer).
