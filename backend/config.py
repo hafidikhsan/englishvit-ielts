@@ -19,6 +19,11 @@ class EvIELTSConfig:
     chatgpt_model = os.getenv('CHATGPT_MODEL')
     openai_api_key = os.getenv('OPENAI_API_KEY')
 
+    # MARK: Audio
+    audio_clean_extension = 'wav'
+    audio_clean_sample_rate = 16000
+    audio_clean_channels = 1
+
     # MARK: Logging
     log_level = os.getenv('LOG_LEVEL')
 
