@@ -7,6 +7,7 @@ from openai import OpenAI
 from config import EvIELTSConfig
 from app.utils.exception import EvException, EvAPIException
 from app.models.chat_gpt_evaluation_model import EvChatGPTEvaluationModel
+from app.models.chat_gpt_overall_evaluation_model import EvChatGPTOverallEvaluationModel
 from app.utils.logger import ev_logger
 
 # MARK: EvChatGPTService
@@ -73,7 +74,7 @@ class EvChatGPTService:
         # Update model name
         self.model_name = model_name
 
-        print(f"Successfully update model to '{self.model_name}' √")
+        ev_logger.info(f"Successfully update model to '{self.model_name}' √")
 
 
     # MARK: UpdatePrompt
@@ -90,7 +91,7 @@ class EvChatGPTService:
         self.grammar_prompt = grammar_prompt if grammar_prompt is not None else self.grammar_prompt
         self.pronunciation_prompt = pronunciation_prompt if pronunciation_prompt is not None else self.pronunciation_prompt
 
-        print(f"Successfully update prompt √")
+        ev_logger.info(f"Successfully update prompt √")
 
     # MARK: Evaluate
     def evaluate(self, question: str, answer: str) -> EvChatGPTEvaluationModel:
@@ -101,7 +102,7 @@ class EvChatGPTService:
             )
             # Define Prompt
             system_prompt = f"""
-            You are an IELTS Speaking examiner expert that have attention to the detail an precision evaluate candidate answer based on the question for each evaluation metrics. 
+            You are an IELTS Speaking examiner expert that have attention to the detail and precision, evaluate candidate answer based on the question for each evaluation metrics. 
 
             {self.fluency_prompt}
 
@@ -113,8 +114,8 @@ class EvChatGPTService:
 
             Provide feedback for each evaluation metrics with
             - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules)
-            - Overall feedback 2-7 sentences, highlighting key words with <strong>.
-            - Bullet point like 2 or 7 sentences.
+            - 'feedback' 2-7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
+            - Bullet point like 2 or 7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
             - Make the 'feedback' short and motivating, written in a style that's friendly for Gen Z learners.
             - Use a conversational tone (like you're giving advice to a peer).
             - Use emojis to make it fun and encouraging (e.g., 🔥, 💡, ✨, 🚀).
@@ -138,11 +139,53 @@ class EvChatGPTService:
             raise error
 
         except Exception as error:
-            print(f"Failed to evaluate for '{question}' and candidate answer is '{answer}' x")
+            ev_logger.info(f"Failed to evaluate for '{question}' and candidate answer is '{answer}' x")
 
             # If something went wrong
             raise EvAPIException(
                 message = f"Failed to evaluate for '{question}' and candidate answer is '{answer}' x",
+            )
+        
+    # MARK: OverallFeedback
+    def overall_feedback(self, histories: str) -> EvChatGPTOverallEvaluationModel:
+        try:
+            # Define Client
+            client = OpenAI(
+              api_key = EvIELTSConfig.openai_api_key,
+            )
+            # Define Prompt
+            system_prompt = f"""
+            You are an IELTS Speaking examiner expert that have attention to the detail and precision, evaluate overall IELTS speaking simulation of this candidate based on speaking simulation history.
+
+            Provide feedback for each evaluation metrics  and the overall with
+            - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules)
+            - 'readable_feedback' with 2-7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
+            - Make the 'readable_feedback' short and motivating, written in a style that's friendly for Gen Z learners.
+            - Use a conversational tone (like you're giving advice to a peer).
+            - Use emojis to make it fun and encouraging (e.g., 🔥, 💡, ✨, 🚀).
+            """
+
+            # Evaluate process
+            result = client.responses.parse(
+                model = self.model_name,
+                instructions = system_prompt,
+                input = f"Here is the candidate's speaking simulation history: {histories}",
+                text_format = EvChatGPTOverallEvaluationModel,
+            )
+
+            # Return model
+            return result.output_parsed
+
+        except EvException as error:
+            # If the error is EvException
+            raise error
+
+        except Exception as error:
+            ev_logger.info(f"Failed to overall feedback x")
+
+            # If something went wrong
+            raise EvAPIException(
+                message = f"Failed to overall feedback for x",
             )
         
 # MARK: EvChatGPTServiceInstance

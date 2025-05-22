@@ -15,16 +15,16 @@ from app.models.response_model import EvResponseModel
 from app.models.response_metadata_model import EvResponseMetadataModel
 
 # MARK: Evaluation
-@api_bp.route('/evaluation', methods = ['POST'])
-def evaluation():
+@api_bp.route('/overall-feedback', methods = ['POST'])
+def overall_feedback():
     '''
-    Function to handle the evaluation process.
+    Function to handle the overall feedback process.
     '''
     try:
-        # Check if the request has a text `question`, `answer`, and `test_id` field
-        if 'question' not in request.form or 'answer' not in request.form or 'test_id' not in request.form:
+        # Check if the request has a text `session_id`, `finished`, `histories` field
+        if 'session_id' not in request.form or 'finished' not in request.form or 'histories' not in request.form:
             # Define the error message
-            message = 'Invalid request, question, answer, and test_id are required'
+            message = 'Invalid request session_id, finished, and histories are required'
 
             # Throw an exception
             raise EvClientException(
@@ -35,9 +35,8 @@ def evaluation():
             )
         
         # Evaluate using ChatGPT
-        result = chatgpt_service.evaluate(
-            question = request.form['question'],
-            answer = request.form['answer'],
+        result = chatgpt_service.overall_feedback(
+            histories = request.form['histories'],
         )
 
         # Send the result to backend
@@ -49,15 +48,22 @@ def evaluation():
 
             # Define the data
             data = {
-                'fluency_feedback': result.fluency.json(),
-                'pronunciation_feedback': result.pronunciation.json(),
-                'grammar_feedback': result.grammar.json(),
-                'lexical_feedback': result.lexical.json(),
+                'finished': request.form.get('finished'),
+                'overall_band': result.overall.final_band,
+                'overall_feedback': result.overall.readable_feedback,
+                'fluency_band': result.fluency.final_band,
+                'fluency_feedback': result.fluency.readable_feedback,
+                'lexical_band': result.lexical.final_band,
+                'lexical_feedback': result.lexical.readable_feedback,
+                'grammar_band': result.grammar.final_band,
+                'grammar_feedback': result.grammar.readable_feedback,
+                'pronunciation_band': result.pronunciation.final_band,
+                'pronunciation_feedback': result.pronunciation.readable_feedback,
             }
 
             # Send the request to the Englishvit API
             response = requests.post(
-                f"https://englishvit.com/api/user/ielts-ai/test/update/{request.form['test_id']}", 
+                f"https://englishvit.com/api/user/ielts-ai/session/update/{request.form['session_id']}", 
                 data = data, 
                 headers = headers,
             )

@@ -70,7 +70,7 @@ class EvASRService:
             raise error
 
         except Exception as error:
-            print(f"Failed to update model to '{model_name}' currently use '{self.model_name}' x")
+            ev_logger.info(f"Failed to update model to '{model_name}' currently use '{self.model_name}' x")
 
             # If something went wrong
             raise EvAPIException(
@@ -82,7 +82,7 @@ class EvASRService:
         # Update initial prompt
         self.initial_prompt = initial_prompt
 
-        print(f"Successfully update initial prompt to '{initial_prompt}' √")
+        ev_logger.info(f"Successfully update initial prompt to '{initial_prompt}' √")
 
     # MARK: Transcribe
     def transcribe(self, audio_file_path: str):
@@ -110,7 +110,7 @@ class EvASRService:
             raise error
 
         except Exception as error:
-            print(f"Failed to transcribe audio '{audio_file_path}' x")
+            ev_logger.info(f"Failed to transcribe audio '{audio_file_path}' x")
 
             # If something went wrong
             raise EvAPIException(
