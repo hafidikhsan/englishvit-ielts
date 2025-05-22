@@ -9,6 +9,9 @@ api_bp = Blueprint('/api', __name__)
 from app.models.response_model import EvResponseModel
 from app.models.response_metadata_model import EvResponseMetadataModel
 
+# Routes
+from app.api.routes.transcribe import *
+
 @api_bp.route('/', methods = ['GET'])
 def api_base():
     # Define the response model
