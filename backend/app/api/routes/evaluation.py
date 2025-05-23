@@ -49,6 +49,7 @@ def evaluation():
 
             # Define the data
             data = {
+                'finished': 1,
                 'fluency_feedback': result.fluency.json(),
                 'pronunciation_feedback': result.pronunciation.json(),
                 'grammar_feedback': result.grammar.json(),
