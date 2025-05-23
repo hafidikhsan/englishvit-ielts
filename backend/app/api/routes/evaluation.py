@@ -21,10 +21,10 @@ def evaluation():
     Function to handle the evaluation process.
     '''
     try:
-        # Check if the request has a text `question`, `answer`, and `test_id` field
-        if 'question' not in request.form or 'answer' not in request.form or 'test_id' not in request.form:
+        # Check if the request has a text `question`, `answer`, `confidence` and `test_id` field
+        if 'question' not in request.form or 'answer' not in request.form or 'confidence' not in request.form or 'test_id' not in request.form:
             # Define the error message
-            message = 'Invalid request, question, answer, and test_id are required'
+            message = 'Invalid request, question, answer, confidence, and test_id are required'
 
             # Throw an exception
             raise EvClientException(
@@ -38,6 +38,7 @@ def evaluation():
         result = chatgpt_service.evaluate(
             question = request.form['question'],
             answer = request.form['answer'],
+            confidence = request.form['confidence'],
         )
 
         # Send the result to backend

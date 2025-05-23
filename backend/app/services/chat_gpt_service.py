@@ -55,6 +55,7 @@ class EvChatGPTService:
         - Unusual spelling that may indicate slurred or unclear speech
         - Homophones or confusion between similar-sounding words
         - Intelligibility and rhythm (e.g., unnatural sentence fragments)
+        - I also add "probability" for each word from WhisperAPI
         """
 
     # MARK: HealthCheck
@@ -104,7 +105,7 @@ class EvChatGPTService:
         }
 
     # MARK: Evaluate
-    def evaluate(self, question: str, answer: str) -> EvChatGPTEvaluationModel:
+    def evaluate(self, question: str, answer: str, confidence: str) -> EvChatGPTEvaluationModel:
         try:
             # Define Client
             client = OpenAI(
@@ -137,7 +138,7 @@ class EvChatGPTService:
             result = client.responses.parse(
                 model = self.model_name,
                 instructions = system_prompt,
-                input = f"Interviewer question is '{question}' and candidate answer is '{answer}'",
+                input = f"Interviewer question is '{question}' and candidate answer is '{answer}' and confidence is '{confidence}'",
                 text_format = EvChatGPTEvaluationModel,
             )
 
