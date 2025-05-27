@@ -6,4 +6,5 @@ from pydantic import BaseModel
 class EvChatGPTEvaluationFeedbackModel(BaseModel):
     # Properties
     feedback: str
+    candidate_answer: str
     points: list[str]

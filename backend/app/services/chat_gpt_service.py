@@ -125,7 +125,8 @@ class EvChatGPTService:
 
             Provide feedback for each evaluation metrics with
             - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules like 6.5, 7.0, 7.5 don't use 6.1, 6.2, 6.3)
-            - 'feedback' 2-7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
+            - 'candidate_answer' Write again the candidate answer but highlight the word with <span> color red if indicate wrong based on the criteria and color green if you want to highlight that candidate doing great
+            - 'feedback' 1-3 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
             - Bullet point like 2 or 7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
             - Make the 'feedback' short and motivating, written in a style that's friendly for Gen Z learners.
             - Use a conversational tone (like you're giving advice to a peer).
@@ -170,7 +171,8 @@ class EvChatGPTService:
 
             Provide feedback for each evaluation metrics  and the overall with
             - Final IELTS band score from 0.0 to 9.0 (Don't forget use based on IELTS band rules like 6.5, 7.0, 7.5 don't use 6.1, 6.2, 6.3)
-            - 'readable_feedback' with 2-7 sentences, highlighting key words with <strong> if needed and wrapped with <p> HTML tag.
+            - 'readable_feedback' using HTML tags, make sure to have 2 <p> tags in the 'readable_feedback' and use <strong> to highlight key words.
+            - The first <p> tag is for overall feedback written with 1-2 sentences and the second <p> tag is for tips feedback written with 1 sentences.
             - Make the 'readable_feedback' short and motivating, written in a style that's friendly for Gen Z learners.
             - Use a conversational tone (like you're giving advice to a peer).
             - Use emojis to make it fun and encouraging (e.g., 🔥, 💡, ✨, 🚀).
