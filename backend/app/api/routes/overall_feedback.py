@@ -196,7 +196,35 @@ def overall_feedback():
                 status = 'Success',
                 message = 'Evaluation successful',
             ),
-            data = result.model_dump()
+            # data = result.model_dump(),
+            data = {
+                'finished': request.form.get('finished'),
+                'overall_band': result.overall.final_band,
+                'overall_feedback': {
+                    'feedback': result.overall.readable_feedback,
+                    'tips': result.overall.tips_feedback,
+                },
+                'fluency_band': result.fluency.final_band,
+                'fluency_feedback': {
+                    'feedback': result.fluency.readable_feedback,
+                    'tips': result.fluency.tips_feedback,
+                },
+                'lexical_band': result.lexical.final_band,
+                'lexical_feedback': {
+                    'feedback': result.lexical.readable_feedback,
+                    'tips': result.lexical.tips_feedback,
+                },
+                'grammar_band': result.grammar.final_band,
+                'grammar_feedback': {
+                    'feedback': result.grammar.readable_feedback,
+                    'tips': result.grammar.tips_feedback,
+                },
+                'pronunciation_band': result.pronunciation.final_band,
+                'pronunciation_feedback': {
+                    'feedback': result.pronunciation.readable_feedback,
+                    'tips': result.pronunciation.tips_feedback,
+                },
+            },
         )
 
         # Return the data
