@@ -35,6 +35,7 @@ def create_app():
     ev_logger.info('ChatGPT service successfully started √')
     ev_logger.info('Start IELTS service ...')
     from app.services.ielts_services import ielts_service
+    ielts_service.update_prompt()
     ev_logger.info('IELTS service successfully started √')
     
     # Return the app instance

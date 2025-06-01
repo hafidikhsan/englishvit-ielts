@@ -160,7 +160,11 @@ class EvIELTSService:
             # Get word timestamps
             word_timestamps = []
             for word in transcript.words:
-                word_timestamps.append(word.json())
+                word_timestamps.append({
+                    "word": word.word,
+                    "start": word.start,
+                    "end": word.end,
+                })
 
             # Evaluate process
             result = client.responses.parse(
