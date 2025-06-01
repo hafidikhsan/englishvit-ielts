@@ -18,6 +18,12 @@ class EvIELTSConfig:
     whisper_model = os.getenv('WHISPER_MODEL')
     chatgpt_model = os.getenv('CHATGPT_MODEL')
     openai_api_key = os.getenv('OPENAI_API_KEY')
+    chatgpt_feedback_model = os.getenv('CHATGPT_FEEDBACK_MODEL')
+    chatgpt_whisper_model = os.getenv('CHATGPT_WHISPER_MODEL')
+    
+    # MARK: Prompt
+    evaluation_feedback_prompt = os.getenv('EVALUATION_FEEDBACK_PROMPT')
+    overall_feedback_prompt = os.getenv('OVERALL_FEEDBACK_PROMPT')
 
     # MARK: Audio
     audio_clean_extension = 'wav'

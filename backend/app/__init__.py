@@ -8,7 +8,7 @@ from config import EvIELTSConfig
 from app.utils.logger import ev_logger
 
 # Routes
-from app.api.routes import api_bp
+from app.api.routes import api_bp, api_v2_bp
 
 # MARK: CreateApp
 def create_app():
@@ -24,6 +24,7 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix = '/api')
+    app.register_blueprint(api_v2_bp, url_prefix = '/api/v2')
 
     # Load the ASR model
     ev_logger.info('Start ASR service ...')
@@ -32,6 +33,9 @@ def create_app():
     ev_logger.info('Start ChatGPT service ...')
     from app.services.chat_gpt_service import chatgpt_service
     ev_logger.info('ChatGPT service successfully started √')
+    ev_logger.info('Start IELTS service ...')
+    from app.services.ielts_services import ielts_service
+    ev_logger.info('IELTS service successfully started √')
     
     # Return the app instance
     return app
