@@ -8,7 +8,7 @@ from config import EvIELTSConfig
 from app.utils.logger import ev_logger
 
 # Routes
-from app.api.routes import api_bp, api_v2_bp
+from app.api.routes import api_bp, api_v2_bp, api_v3_bp
 
 # MARK: CreateApp
 def create_app():
@@ -25,6 +25,7 @@ def create_app():
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix = '/api')
     app.register_blueprint(api_v2_bp, url_prefix = '/api/v2')
+    app.register_blueprint(api_v3_bp, url_prefix = '/api/v3')
 
     # Load the ASR model
     ev_logger.info('Start ASR service ...')

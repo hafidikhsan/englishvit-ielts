@@ -12,6 +12,7 @@ from app.utils.exception import EvException, EvAPIException, EvServerException
 from app.models.chat_gpt_evaluation_model import EvChatGPTEvaluationModel
 from app.models.chat_gpt_overall_evaluation_model import EvChatGPTOverallEvaluationModel
 from app.models.evaluation_model import EvEvaluationModel
+from app.models.response_transcribe_model import EvResponseTranscribeModel
 from app.utils.logger import ev_logger
 
 # Get the JSON directory
@@ -244,6 +245,122 @@ class EvIELTSService:
             # If something went wrong
             raise EvAPIException(
                 message = f"Failed to overall feedback",
+            )
+
+    # MARK: Transcribe
+    def transcribe(self, audio_file_path: str) -> EvResponseTranscribeModel:
+        try:
+            # If the whisper model is empty
+            if self.chatgpt_whisper_model_name is None:
+                raise EvServerException(
+                    message = f"Failed evaluate because whisper model is empty",
+                )
+            else:
+                if self.chatgpt_whisper_model_name == "":
+                    raise EvServerException(
+                        message = f"Failed evaluate because whisper model is empty",
+                    )
+
+            # Define Chat GPT client
+            client = OpenAI(
+                api_key = EvIELTSConfig.openai_api_key,
+            )
+
+            # Open audio file
+            audio_file = open(audio_file_path, "rb")
+
+            # Transcribe
+            transcript = client.audio.transcriptions.create(
+              file = audio_file,
+              model = self.chatgpt_whisper_model_name,
+              language = "en",
+              prompt = self.initial_prompt,
+              response_format = "verbose_json",
+              temperature = 0.0,
+              timestamp_granularities = ["word"],
+            )
+
+            # Get transcribe text
+            transcript_text = transcript.text
+
+            # Get word timestamps
+            word_timestamps = []
+            for word in transcript.words:
+                word_timestamps.append({
+                    "word": word.word,
+                    "start": word.start,
+                    "end": word.end,
+                })
+
+            # Return transcribe data
+            return EvResponseTranscribeModel(
+                transcribe = transcript_text,
+                word_timestamp = json.dumps(word_timestamps),
+            )
+
+        except EvException as error:
+            # If the error is EvException
+            raise error
+
+        except Exception as error:
+            ev_logger.info(f"Failed to transcribe '{audio_file_path}' x")
+
+            # If something went wrong
+            raise EvAPIException(
+                message = f"Failed to transcribe '{audio_file_path}'",
+            )
+        
+    # MARK: Evaluation
+    def evaluation(self, answer: str, question: str) -> EvChatGPTEvaluationModel:
+        try:
+            # If the feedback model is empty
+            if self.chatgpt_feedback_model_name is None:
+                raise EvServerException(
+                    message = f"Failed evaluate because feedback model is empty",
+                )
+            else:
+                if self.chatgpt_feedback_model_name == "":
+                    raise EvServerException(
+                        message = f"Failed evaluate because feedback model is empty",
+                    )
+
+            # If the evaluation prompt is empty
+            if self.evaluation_feedback_prompt is None:
+                raise EvServerException(
+                    message = f"Failed evaluate because evaluation prompt is empty",
+                )
+            else:
+                if self.evaluation_feedback_prompt == "":
+                    raise EvServerException(
+                        message = f"Failed evaluate because evaluation prompt is empty",
+                    )
+
+            # Define Chat GPT client
+            client = OpenAI(
+                api_key = EvIELTSConfig.openai_api_key,
+            )
+
+            # Evaluate process
+            result = client.responses.parse(
+                model = self.chatgpt_feedback_model_name,
+                instructions = self.evaluation_feedback_prompt,
+                input = f"Interviewer question is '{question}' and candidate answer is '{answer}'",
+                text_format = EvChatGPTEvaluationModel,
+            )
+
+            # Return evaluation data
+            return result.output_parsed
+
+        except EvException as error:
+            # If the error is EvException
+            raise error
+
+        except Exception as error:
+            ev_logger.info(f"Failed to evaluation x")
+
+            # If something went wrong
+            raise EvAPIException(
+                message = f"Failed to evaluation",
             )
         
 # MARK: EvIELTSServiceInstance
