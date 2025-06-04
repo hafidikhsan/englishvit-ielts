@@ -310,15 +310,15 @@ def overall_feedback():
             data = {
                 'finished': request.form.get('finished'),
                 'overall_band': result.overall.final_band,
-                'overall_feedback': result.overall,
+                'overall_feedback': result.overall.model_dump_json(),
                 'fluency_band': result.fluency.final_band,
-                'fluency_feedback': result.fluency,
+                'fluency_feedback': result.fluency.model_dump_json(),
                 'lexical_band': result.lexical.final_band,
-                'lexical_feedback': result.lexical,
+                'lexical_feedback': result.lexical.model_dump_json(),
                 'grammar_band': result.grammar.final_band,
-                'grammar_feedback': result.grammar,
+                'grammar_feedback': result.grammar.model_dump_json(),
                 'pronunciation_band': result.pronunciation.final_band,
-                'pronunciation_feedback': result.pronunciation,
+                'pronunciation_feedback': result.pronunciation.model_dump_json(),
             }
 
             # Send the request to the Englishvit API
