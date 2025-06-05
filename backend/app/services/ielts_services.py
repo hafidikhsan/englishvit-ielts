@@ -7,6 +7,9 @@ from openai import OpenAI
 from flask import current_app
 from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
 
+import warnings
+warnings.filterwarnings("ignore", message="Could not initialize NNPACK")
+
 # Modules
 from config import EvIELTSConfig
 from app.utils.exception import EvException, EvAPIException, EvServerException
@@ -143,14 +146,12 @@ class EvIELTSService:
 
             # If the evaluation prompt is empty
             if self.evaluation_feedback_prompt is None:
-                raise EvServerException(
-                    message = f"Failed evaluate because evaluation prompt is empty",
-                )
+                # Get prompt
+                self._get_feedback_prompt()
             else:
                 if self.evaluation_feedback_prompt == "":
-                    raise EvServerException(
-                        message = f"Failed evaluate because evaluation prompt is empty",
-                    )
+                    # Get prompt
+                    self._get_feedback_prompt()
 
             # Define Chat GPT client
             client = OpenAI(
@@ -226,14 +227,12 @@ class EvIELTSService:
 
             # If the overall prompt is empty
             if self.overall_feedback_prompt is None:
-                raise EvServerException(
-                    message = f"Failed evaluate because overall prompt is empty",
-                )
+                # Get prompt
+                self._get_feedback_prompt()
             else:
                 if self.overall_feedback_prompt == "":
-                    raise EvServerException(
-                        message = f"Failed evaluate because overall prompt is empty",
-                    )
+                    # Get prompt
+                    self._get_feedback_prompt()
 
             # Define Chat GPT client
             client = OpenAI(
@@ -303,13 +302,13 @@ class EvIELTSService:
 
                 # Transcribe
                 transcript = client.audio.transcriptions.create(
-                file = audio_file,
-                model = self.chatgpt_whisper_model_name,
-                language = "en",
-                prompt = self.initial_prompt,
-                response_format = "verbose_json",
-                temperature = 0.0,
-                timestamp_granularities = ["word"],
+                    file = audio_file,
+                    model = self.chatgpt_whisper_model_name,
+                    language = "en",
+                    prompt = self.initial_prompt,
+                    response_format = "verbose_json",
+                    temperature = 0.0,
+                    timestamp_granularities = ["word"],
                 )
 
                 # Get transcribe text
@@ -358,14 +357,12 @@ class EvIELTSService:
 
             # If the evaluation prompt is empty
             if self.evaluation_feedback_prompt is None:
-                raise EvServerException(
-                    message = f"Failed evaluate because evaluation prompt is empty",
-                )
+                # Get prompt
+                self._get_feedback_prompt()
             else:
                 if self.evaluation_feedback_prompt == "":
-                    raise EvServerException(
-                        message = f"Failed evaluate because evaluation prompt is empty",
-                    )
+                    # Get prompt
+                    self._get_feedback_prompt()
 
             # Define Chat GPT client
             client = OpenAI(
