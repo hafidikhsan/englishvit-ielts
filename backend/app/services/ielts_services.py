@@ -263,15 +263,20 @@ class EvIELTSService:
     def transcribe(self, audio_file_path: str) -> EvResponseTranscribeModel:
         try:
             # If the whisper model is empty
-            if self.chatgpt_whisper_model_name is None or self.silero_model is None:
+            if self.chatgpt_whisper_model_name is None:
                 raise EvServerException(
-                    message = f"Failed evaluate because whisper and silero model is empty",
+                    message = f"Failed evaluate because whisper model is empty",
                 )
             else:
                 if self.chatgpt_whisper_model_name == "":
                     raise EvServerException(
                         message = f"Failed evaluate because whisper model is empty",
                     )
+                
+            # If silero model is not loaded
+            if self.silero_model is None:
+                # Load silero model
+                self.silero_model = load_silero_vad()
 
             # Define Chat GPT client
             client = OpenAI(
