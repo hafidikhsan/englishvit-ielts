@@ -1,6 +1,7 @@
 # MARK: Import
 # Dependencies
 import os
+os.environ['PYTORCH_JIT_LOG_LEVEL'] = 'ERROR'
 import json
 import datetime
 from openai import OpenAI
