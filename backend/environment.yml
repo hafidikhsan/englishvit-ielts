@@ -16,4 +16,5 @@ dependencies:
       - openai-whisper
       - openai
       - pydantic
+      - torch
       - silero-vad
