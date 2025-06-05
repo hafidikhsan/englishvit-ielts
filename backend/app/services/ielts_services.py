@@ -1,12 +1,24 @@
 # MARK: Import
 # Dependencies
 import os
+import sys
 os.environ['PYTORCH_JIT_LOG_LEVEL'] = 'ERROR'
 import json
 import datetime
 from openai import OpenAI
 from flask import current_app
-from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
+class SuppressStderr:
+    def __enter__(self):
+        self.original_stderr = sys.stderr
+        self.null_stderr = open(os.devnull, 'w')
+        sys.stderr = self.null_stderr
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stderr = self.original_stderr
+        self.null_stderr.close()
+
+# Suppress backend warnings during PyTorch + Silero import
+with SuppressStderr():
+    from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
 
 import warnings
 warnings.filterwarnings("ignore", message="Could not initialize NNPACK")
