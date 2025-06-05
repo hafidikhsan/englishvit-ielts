@@ -5,6 +5,7 @@ import json
 import datetime
 from openai import OpenAI
 from flask import current_app
+from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
 
 # Modules
 from config import EvIELTSConfig
@@ -26,6 +27,7 @@ class EvIELTSService:
         # Properties
         self.chatgpt_feedback_model_name = EvIELTSConfig.chatgpt_feedback_model
         self.chatgpt_whisper_model_name = EvIELTSConfig.chatgpt_whisper_model
+        self.silero_model = None
         self.user_credit = 2
         self.evaluation_feedback_prompt = ""
         self.overall_feedback_prompt = ""
@@ -41,6 +43,7 @@ class EvIELTSService:
             json_dir = get_json_dir()
             evaluation_path = os.path.join(json_dir, EvIELTSConfig.evaluation_feedback_prompt)
             overall_path = os.path.join(json_dir, EvIELTSConfig.overall_feedback_prompt)
+            self.silero_model = load_silero_vad()
 
             # Read evaluation feedback prompt
             with open(evaluation_path, 'r', encoding='utf-8') as file:
@@ -264,9 +267,9 @@ class EvIELTSService:
     def transcribe(self, audio_file_path: str) -> EvResponseTranscribeModel:
         try:
             # If the whisper model is empty
-            if self.chatgpt_whisper_model_name is None:
+            if self.chatgpt_whisper_model_name is None or self.silero_model is None:
                 raise EvServerException(
-                    message = f"Failed evaluate because whisper model is empty",
+                    message = f"Failed evaluate because whisper and silero model is empty",
                 )
             else:
                 if self.chatgpt_whisper_model_name == "":
@@ -279,37 +282,53 @@ class EvIELTSService:
                 api_key = EvIELTSConfig.openai_api_key,
             )
 
-            # Open audio file
-            audio_file = open(audio_file_path, "rb")
-
-            # Transcribe
-            transcript = client.audio.transcriptions.create(
-              file = audio_file,
-              model = self.chatgpt_whisper_model_name,
-              language = "en",
-              prompt = self.initial_prompt,
-              response_format = "verbose_json",
-              temperature = 0.0,
-              timestamp_granularities = ["word"],
+            # VAD process
+            wav = read_audio(audio_file_path)
+            speech_timestamps = get_speech_timestamps(
+                wav,
+                self.silero_model,
+                return_seconds=True,
             )
 
-            # Get transcribe text
-            transcript_text = transcript.text
+            # If no speech detected
+            if not speech_timestamps:
+                # Return transcribe data
+                return EvResponseTranscribeModel(
+                    transcribe = "",
+                    word_timestamp = json.dumps([]),
+                )
+            else:
+                # Open audio file
+                audio_file = open(audio_file_path, "rb")
 
-            # Get word timestamps
-            word_timestamps = []
-            for word in transcript.words:
-                word_timestamps.append({
-                    "word": word.word,
-                    "start": word.start,
-                    "end": word.end,
-                })
+                # Transcribe
+                transcript = client.audio.transcriptions.create(
+                file = audio_file,
+                model = self.chatgpt_whisper_model_name,
+                language = "en",
+                prompt = self.initial_prompt,
+                response_format = "verbose_json",
+                temperature = 0.0,
+                timestamp_granularities = ["word"],
+                )
 
-            # Return transcribe data
-            return EvResponseTranscribeModel(
-                transcribe = transcript_text,
-                word_timestamp = json.dumps(word_timestamps),
-            )
+                # Get transcribe text
+                transcript_text = transcript.text
+
+                # Get word timestamps
+                word_timestamps = []
+                for word in transcript.words:
+                    word_timestamps.append({
+                        "word": word.word,
+                        "start": word.start,
+                        "end": word.end,
+                    })
+
+                # Return transcribe data
+                return EvResponseTranscribeModel(
+                    transcribe = transcript_text,
+                    word_timestamp = json.dumps(word_timestamps),
+                )
 
         except EvException as error:
             # If the error is EvException
