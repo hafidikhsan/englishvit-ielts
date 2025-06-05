@@ -7,6 +7,9 @@ from flask import jsonify, request, current_app
 # Routes
 from app.api.routes import api_bp
 
+# Services
+from app.services.ielts_services import ielts_service
+
 # Modules
 from app.models.response_model import EvResponseModel
 from app.models.response_metadata_model import EvResponseMetadataModel
@@ -191,6 +194,77 @@ def information(type: str):
                     # Error writing to file
                     raise EvServerException(
                         message = "Error writing to file",
+                    )
+
+        # If the information type is credit
+        elif type == 'credit':
+            # If GET request, return the credit
+            if request.method == 'GET':
+                try:
+                    # Get the user credit from the service
+                    user_credit = ielts_service.get_credit()
+
+                    # Define the response model data
+                    response_data = EvResponseModel(
+                        metadata = EvResponseMetadataModel(
+                            code = 200,
+                            status = 'Success',
+                            message = 'Successfully retrieved user credit',
+                        ),
+                        data = {
+                            'information': user_credit,
+                        }
+                    )
+
+                    # Return the information response
+                    return jsonify(response_data.model_dump()), 200, {'ContentType' : 'application/json'}
+                
+                except Exception as e:
+                    # Error writing set data
+                    raise EvServerException(
+                        message = "Error set data",
+                    )
+
+            # If POST request, update the information
+            elif request.method == 'POST':
+                try:
+                    # Check if the request has a text `credit` field
+                    if 'credit' not in request.form:
+                        # Define the error message
+                        message = 'Invalid request, credit is required'
+
+                        # Throw an exception
+                        raise EvClientException(
+                            message = message,
+                            information = {
+                                'message': message,
+                            }
+                        )
+                    
+                    # Get the user credit from the service
+                    ielts_service.update_credit(
+                        user_credit = int(request.form['credit']),
+                    )
+
+                    # Define the response model data
+                    response_data = EvResponseModel(
+                        metadata = EvResponseMetadataModel(
+                            code = 200,
+                            status = 'Success',
+                            message = 'Successfully updated user credit',
+                        ),
+                        data = {
+                            'information': request.form['credit'],
+                        }
+                    )
+
+                    # Return the information response
+                    return jsonify(response_data.model_dump()), 200, {'ContentType' : 'application/json'}
+                
+                except Exception as e:
+                    # Error setting data
+                    raise EvServerException(
+                        message = "Error set data",
                     )
                 
         else:

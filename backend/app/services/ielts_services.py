@@ -26,6 +26,7 @@ class EvIELTSService:
         # Properties
         self.chatgpt_feedback_model_name = EvIELTSConfig.chatgpt_feedback_model
         self.chatgpt_whisper_model_name = EvIELTSConfig.chatgpt_whisper_model
+        self.user_credit = 2
         self.evaluation_feedback_prompt = ""
         self.overall_feedback_prompt = ""
         self.initial_prompt = "I was like, was like, I'm like, you know what I mean, kind of, um, ah, huh, and so, so um, uh, and um, like um, so like, like it's, it's like, i mean, yeah, ok so, uh so, so uh, yeah so, you know, it's uh, uh and, and uh, like, kind"
@@ -90,6 +91,18 @@ class EvIELTSService:
         self.initial_prompt = initial_prompt
 
         ev_logger.info(f"Successfully update initial prompt to '{initial_prompt}' √")
+
+    # MARK: UpdateCredit
+    def update_credit(self, user_credit: int):
+        # Update user credit
+        self.user_credit = user_credit
+
+        ev_logger.info(f"Successfully update user credit to '{self.user_credit}' √")
+
+    # MARK: GetCredit
+    def get_credit(self) -> int:
+        # Get user credit
+        return self.user_credit
 
     # MARK: GetPrompt
     def get_prompt(self):
