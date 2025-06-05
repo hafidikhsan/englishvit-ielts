@@ -14,7 +14,6 @@ from app.services.ielts_services import ielts_service
 from app.models.response_model import EvResponseModel
 from app.models.response_metadata_model import EvResponseMetadataModel
 from app.utils.exception import EvClientException, EvServerException, EvException
-from app.utils.logger import ev_logger
 
 # Get the JSON directory
 def get_json_dir():
@@ -29,13 +28,10 @@ def information(type: str):
     '''
     try:
         json_dir = get_json_dir()
-        ev_logger.info(json_dir)
         # If the information type is test
         if type == 'test':
             # Define the filename
             file_path = os.path.join(json_dir, "information_test.json")
-            ev_logger.info(file_path)
-            ev_logger.info(os.path.exists(file_path))
 
             # If GET request, return the information
             if request.method == 'GET':
@@ -117,8 +113,6 @@ def information(type: str):
         elif type == 'speaking-intro':
             # Define the filename
             file_path = os.path.join(json_dir, "speaking_simulation_intro.json")
-            ev_logger.info(file_path)
-            ev_logger.info(os.path.exists(file_path))
 
             # If GET request, return the information
             if request.method == 'GET':
