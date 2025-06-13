@@ -16,9 +16,6 @@ services:
       - ./backend/.env
     networks:
       - app-network
-    volumes:
-      - ./audio:/app/audio
-      - ./backend/json_data:/app/json_data
 
 networks:
   app-network:
