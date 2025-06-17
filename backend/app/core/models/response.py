@@ -1,7 +1,7 @@
 # MARK: Import
 # Dependencies.
 from pydantic import BaseModel, Field
-from typing import Optional, Any
+from typing import Any, Optional
 
 # Modules.
 from config import EvIELTSConfig

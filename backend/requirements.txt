@@ -2,3 +2,4 @@ fastapi
 uvicorn
 datetime
 python-dotenv
+python-multipart

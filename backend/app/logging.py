@@ -1,7 +1,7 @@
 # MARK: Import
 # Dependencies.
-import logging
 from enum import StrEnum
+import logging
 
 # MARK: Variables
 # Default log format for debug level.

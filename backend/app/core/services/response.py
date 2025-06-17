@@ -13,11 +13,13 @@ def standart_response(data: Any, code: int, status: str, message: str) -> JSONRe
     """
     Constructs a standardized JSON response for the API with metadata and data fields.
     This function is used to create a consistent response format across the EvIELTS API application.
+
     Args:
         data (Any): The data to include in the response.
         code (int): The HTTP status code for the response.
         status (str): The status of the response (e.g., "Success", "Error").
         message (str): An optional message for the response.
+        
     Returns:
         JSONResponse: A FastAPI JSONResponse object containing the response data.
     """

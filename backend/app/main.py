@@ -42,10 +42,13 @@ async def root():
     """
     # Return a welcome message with API version information.
     return standart_response(
-        data={"message": "Welcome to the EvIELTS API!", "versions": {
-            "v1": "api/v1",
-        }},
+        data={
+            "message": "Welcome to the Englishvit IELTS API!", 
+            "versions": {
+                "v1": "api/v1",
+            }
+        },
         code=200,
         status="Success",
-        message="EvIELTS API is running successfully."
+        message="Englishvit IELTS API is running successfully."
     )
