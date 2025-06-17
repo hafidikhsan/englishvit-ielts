@@ -8,6 +8,7 @@ from config import EvIELTSConfig
 from .logging import configure_logging, LogLevels
 from .api import register_routes
 from app.core.services.response import standart_response
+from app.transcribe.services.v1 import service as v1_transcribe_service
 
 # MARK: ConfigureLogging
 configure_logging(log_level=LogLevels.info)
@@ -28,6 +29,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# MARK: StartupEvent
+# Define a startup event in the EvIELTS API application.
+@app.on_event("startup")
+async def startup_event():
+    # Load the Silero VAD model during application startup.
+    model = v1_transcribe_service.load_silero_vad_model()
+
+    # Store the model in the application state for later use.
+    app.state.vad_model = model
 
 # MARK: RegisterRoutes
 # Function to register all API routes.

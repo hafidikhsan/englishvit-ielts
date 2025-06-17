@@ -1,5 +1,10 @@
 fastapi
-uvicorn
 datetime
+numpy
+openai
+pydub
 python-dotenv
 python-multipart
+requests
+silero-vad
+uvicorn

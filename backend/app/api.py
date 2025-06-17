@@ -6,6 +6,9 @@ from fastapi import FastAPI
 from app.informations.controllers.v1 import routes as v1_information_routes
 from app.informations.models.exception import InformationErrorException, InformationClientException
 from app.informations.services.v1 import service as v1_information_service
+from app.transcribe.controllers.v1 import routes as v1_transcribe_routes
+from app.transcribe.models.exception import TranscribeErrorException, TranscribeClientException, TranscribeServerException
+from app.transcribe.services.v1 import service as v1_transcribe_service
 from app.user.controllers.v1 import routes as v1_user_routes
 from app.user.models.exception import UserErrorException, UserClientException, UserServerException
 from app.user.services.v1 import service as v1_user_service
@@ -22,6 +25,8 @@ def register_routes(app: FastAPI) -> None:
     # All routes.
     # Include version 1 information routes.
     app.include_router(v1_information_routes.router)
+    # Include version 1 transcribe routes.
+    app.include_router(v1_transcribe_routes.router)
     # Include version 1 user routes.
     app.include_router(v1_user_routes.router)
 
@@ -29,6 +34,10 @@ def register_routes(app: FastAPI) -> None:
     # Register exception handlers for information-related exceptions.
     app.add_exception_handler(InformationErrorException, v1_information_service.information_error_exception_handler)
     app.add_exception_handler(InformationClientException, v1_information_service.information_client_exception_handler)
+    # Register exception handlers for transcribe-related exceptions.
+    app.add_exception_handler(TranscribeErrorException, v1_transcribe_service.transcribe_error_exception_handler)
+    app.add_exception_handler(TranscribeClientException, v1_transcribe_service.transcribe_client_exception_handler)
+    app.add_exception_handler(TranscribeServerException, v1_transcribe_service.transcribe_server_exception_handler)
     # Register exception handlers for user-related exceptions.
     app.add_exception_handler(UserErrorException, v1_user_service.user_error_exception_handler)
     app.add_exception_handler(UserClientException, v1_user_service.user_client_exception_handler)
