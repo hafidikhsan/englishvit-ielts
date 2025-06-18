@@ -2,9 +2,19 @@
     "cSpell.words": [
         "arpabert",
         "cefr",
+        "dotenv",
+        "epoll",
+        "fastapi",
         "IELTS",
         "informations",
+        "keepalive",
         "levelname",
-        "Silero"
+        "numpy",
+        "pycache",
+        "pydub",
+        "referer",
+        "sendfile",
+        "Silero",
+        "uvicorn"
     ]
 }

@@ -13,7 +13,7 @@ class TranscribeException(HTTPException):
     """
     pass
 
-# MARK: TranscribeErrorException
+# MARK: ErrorException
 # Exception raised for errors related to transcribe retrieval or processing.
 class TranscribeErrorException(TranscribeException):
     """
@@ -32,7 +32,7 @@ class TranscribeErrorException(TranscribeException):
         # Call the parent constructor with a 500 status code and the message.
         super().__init__(status_code=500, detail=error_details)
 
-# MARK: TranscribeClientException
+# MARK: ClientException
 # Exception raised for client-related errors in transcribe retrieval or processing.
 class TranscribeClientException(TranscribeException):
     """
@@ -51,7 +51,7 @@ class TranscribeClientException(TranscribeException):
         # Call the parent constructor with a 400 status code and the message.
         super().__init__(status_code=400, detail=error_details)
 
-# MARK: TranscribeServerException
+# MARK: ServerException
 # Exception raised for server-related errors in transcribe retrieval or processing.
 class TranscribeServerException(TranscribeException):
     """

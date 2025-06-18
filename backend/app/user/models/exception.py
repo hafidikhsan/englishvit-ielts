@@ -13,7 +13,7 @@ class UserException(HTTPException):
     """
     pass
 
-# MARK: UserErrorException
+# MARK: ErrorException
 # Exception raised for errors related to user retrieval or processing.
 class UserErrorException(UserException):
     """
@@ -32,7 +32,7 @@ class UserErrorException(UserException):
         # Call the parent constructor with a 500 status code and the message.
         super().__init__(status_code=500, detail=error_details)
 
-# MARK: UserClientException
+# MARK: ClientException
 # Exception raised for client-related errors in user retrieval or processing.
 class UserClientException(UserException):
     """
@@ -51,7 +51,7 @@ class UserClientException(UserException):
         # Call the parent constructor with a 400 status code and the message.
         super().__init__(status_code=400, detail=error_details)
 
-# MARK: UserServerException
+# MARK: ServerException
 # Exception raised for server-related errors in user retrieval or processing.
 class UserServerException(UserException):
     """

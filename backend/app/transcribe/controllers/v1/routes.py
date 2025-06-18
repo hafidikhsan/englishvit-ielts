@@ -58,9 +58,10 @@ async def transcribe_audio(
         message="Audio transcription completed successfully."
     )
 
+# MARK: ServiceInformation
 # Define a route to get information about the transcribe service.
 @router.get(_info, response_model=ResponseModel)
-async def get_transcribe_info() -> ResponseModel:
+async def get_service_info() -> ResponseModel:
     """
     Get information about the transcribe service.
 
@@ -68,7 +69,7 @@ async def get_transcribe_info() -> ResponseModel:
         ResponseModel: The response model containing service information.
     """
     # Fetch transcribe service information.
-    info = await service.get_transcribe_service_info()
+    info = await service.get_service_info()
 
     # Return the standardized response.
     return standart_response(
@@ -78,6 +79,7 @@ async def get_transcribe_info() -> ResponseModel:
         message="Transcribe service information retrieved successfully."
     )
 
+# MARK: SettingsWhisperModelName
 # Define a route to update the whisper model name.
 @router.post(_settings + "/whisper", response_model=ResponseModel)
 async def update_whisper_model_name(
@@ -105,6 +107,7 @@ async def update_whisper_model_name(
         message="Whisper model name updated successfully."
     )
 
+# MARK: SettingsWhisperInitialPrompt
 # Define a route to update the initial prompt for the transcription service.
 @router.post(_settings + "/initial-prompt", response_model=ResponseModel)
 async def update_whisper_initial_prompt(
@@ -132,6 +135,7 @@ async def update_whisper_initial_prompt(
         message="Whisper initial prompt updated successfully."
     )
 
+# MARK: SettingsUseSileroVAD
 # Define a route to update the use silero VAD.
 @router.post(_settings + "/use-silero-vad", response_model=ResponseModel)
 async def update_use_silero_vad(

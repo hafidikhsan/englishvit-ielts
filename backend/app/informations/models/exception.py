@@ -13,7 +13,7 @@ class InformationException(HTTPException):
     """
     pass
 
-# MARK: InformationErrorException
+# MARK: ErrorException
 # Exception raised for errors related to information retrieval or processing.
 class InformationErrorException(InformationException):
     """
@@ -32,7 +32,7 @@ class InformationErrorException(InformationException):
         # Call the parent constructor with a 500 status code and the message.
         super().__init__(status_code=500, detail=error_details)
 
-# MARK: InformationClientException
+# MARK: ClientException
 # Exception raised for client-related errors in information retrieval or processing.
 class InformationClientException(InformationException):
     """

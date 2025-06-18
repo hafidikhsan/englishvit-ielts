@@ -3,42 +3,28 @@
 from fastapi import FastAPI
 
 # Modules.
-from app.informations.controllers.v1 import routes as v1_information_routes
-from app.informations.models.exception import InformationErrorException, InformationClientException
-from app.informations.services.v1 import service as v1_information_service
-from app.transcribe.controllers.v1 import routes as v1_transcribe_routes
-from app.transcribe.models.exception import TranscribeErrorException, TranscribeClientException, TranscribeServerException
-from app.transcribe.services.v1 import service as v1_transcribe_service
-from app.user.controllers.v1 import routes as v1_user_routes
-from app.user.models.exception import UserErrorException, UserClientException, UserServerException
-from app.user.services.v1 import service as v1_user_service
+from app.beta.controllers import routes as beta_routes
+from app.evaluation.controllers.v1 import routes as v1_evaluation
+from app.informations.controllers.v1 import routes as v1_information
+from app.transcribe.controllers.v1 import routes as v1_transcribe
+from app.user.controllers.v1 import routes as v1_user
 
 # MARK: RegisterRoutes
 # Function to register all API routes.
 def register_routes(app: FastAPI) -> None:
     """
-    Registers all API routes with the FastAPI application instance.
+    Registers all API routes with the FastAPI application instance in this Englishvit IELTS API application.
     
     Args:
         app (FastAPI): The FastAPI application instance to register routes with.
     """
-    # All routes.
+    # Include beta testing routes.
+    app.include_router(beta_routes.router)
+    # Include version 1 evaluation routes.
+    app.include_router(v1_evaluation.router)
     # Include version 1 information routes.
-    app.include_router(v1_information_routes.router)
+    app.include_router(v1_information.router)
     # Include version 1 transcribe routes.
-    app.include_router(v1_transcribe_routes.router)
+    app.include_router(v1_transcribe.router)
     # Include version 1 user routes.
-    app.include_router(v1_user_routes.router)
-
-    # All exception handlers.
-    # Register exception handlers for information-related exceptions.
-    app.add_exception_handler(InformationErrorException, v1_information_service.information_error_exception_handler)
-    app.add_exception_handler(InformationClientException, v1_information_service.information_client_exception_handler)
-    # Register exception handlers for transcribe-related exceptions.
-    app.add_exception_handler(TranscribeErrorException, v1_transcribe_service.transcribe_error_exception_handler)
-    app.add_exception_handler(TranscribeClientException, v1_transcribe_service.transcribe_client_exception_handler)
-    app.add_exception_handler(TranscribeServerException, v1_transcribe_service.transcribe_server_exception_handler)
-    # Register exception handlers for user-related exceptions.
-    app.add_exception_handler(UserErrorException, v1_user_service.user_error_exception_handler)
-    app.add_exception_handler(UserClientException, v1_user_service.user_client_exception_handler)
-    app.add_exception_handler(UserServerException, v1_user_service.user_server_exception_handler)
+    app.include_router(v1_user.router)

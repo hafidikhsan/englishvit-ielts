@@ -1,19 +1,23 @@
 # MARK: Import
 # Dependencies.
-from datetime import datetime
-from fastapi import File, Form, Header, Request, UploadFile
 import json
 import logging
-from openai import OpenAI
 import os
-from pydub import AudioSegment
 import requests
+from datetime import datetime
+from fastapi import File, Form, Header, Request, UploadFile
+from openai import OpenAI
+from pydub import AudioSegment
 from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
 from typing import Any, Optional
 
 # Modules.
-from app.core.services.response import standart_response
-from app.transcribe.models.exception import TranscribeErrorException, TranscribeClientException, TranscribeServerException
+from app.transcribe.models.exception import (
+    TranscribeException, 
+    TranscribeErrorException, 
+    TranscribeClientException, 
+    TranscribeServerException
+)
 from app.transcribe.models.response import TranscribeResponseModel
 from config import EvIELTSConfig
 
@@ -83,8 +87,8 @@ def _convert_audio_to_wav(audio_file_path: str) -> str:
         # Return the path to the converted WAV file.
         return wav_file_path
     
-    except TranscribeErrorException as error:
-        # Re-raise the TranscribeErrorException for further handling.
+    except TranscribeException as error:
+        # Re-raise the TranscribeException for further handling.
         raise error
     
     except Exception as error:
@@ -121,8 +125,8 @@ def _delete_audio_file(audio_file_path: str) -> None:
                 detail=f"Audio file not found for deletion: {audio_file_path}"
             )
         
-    except TranscribeErrorException as error:
-        # Re-raise the TranscribeErrorException for further handling.
+    except TranscribeException as error:
+        # Re-raise the TranscribeException for further handling.
         raise error
     
     except Exception as error:
@@ -168,8 +172,8 @@ def load_silero_vad_model():
         # Return the loaded model.
         return model
     
-    except TranscribeErrorException as error:
-        # Re-raise the TranscribeErrorException for further handling.
+    except TranscribeException as error:
+        # Re-raise the TranscribeException for further handling.
         raise error
     
     except Exception as error:
@@ -396,38 +400,16 @@ async def transcribe(
 
         # Return the response model as a dictionary.
         return response_model.dict()
-        
-    except TranscribeErrorException as error:
-        # Check if the audio file path is provided and delete it.
-        if audio_file_path:
-            _delete_audio_file(audio_file_path)
-
-        # Log the error for debugging purposes.
-        logging.error(f"Transcription error: {error.detail}")
-
-        # Re-raise the TranscribeErrorException for further handling.
-        raise error
     
-    except TranscribeClientException as error:
+    except TranscribeException as error:
         # Check if the audio file path is provided and delete it.
         if audio_file_path:
             _delete_audio_file(audio_file_path)
 
-        # Log the client exception for debugging purposes.
-        logging.error(f"Client error: {error.detail}")
+        # Log the exception for debugging purposes.
+        logging.error(f"Error: {error.detail}")
 
-        # Re-raise the TranscribeClientException for further handling.
-        raise error
-
-    except TranscribeServerException as error:
-        # Check if the audio file path is provided and delete it.
-        if audio_file_path:
-            _delete_audio_file(audio_file_path)
-
-        # Log the server exception for debugging purposes.
-        logging.error(f"Server error: {error.detail}")
-
-        # Re-raise the TranscribeServerException for further handling.
+        # Re-raise the TranscribeException for further handling.
         raise error
     
     except Exception as error:
@@ -446,7 +428,7 @@ async def transcribe(
     
 # MARK: GetTranscribeServiceInfo
 # Function to get the transcribe service information.
-async def get_transcribe_service_info() -> dict:
+async def get_service_info() -> dict:
     """
     Get the transcribe service information.
 
@@ -474,24 +456,39 @@ async def update_whisper_model_name(
     Returns:
         dict: A dictionary containing the updated Whisper model name.
     """
-    # Check if the model name is provided.
-    if not model_name:
-        # Log the error for debugging purposes.
-        logging.error("Model name is required for updating Whisper model")
+    try:
+        # Check if the model name is provided.
+        if not model_name:
+            # Log the error for debugging purposes.
+            logging.error("Model name is required for updating Whisper model")
 
-        # Raise an exception if the model name is not provided.
-        raise TranscribeClientException(
-            information="GET -> Update Whisper Model Name",
-            detail="Model name is required"
-        )
+            # Raise an exception if the model name is not provided.
+            raise TranscribeClientException(
+                information="UPDATE -> Whisper Model Name",
+                detail="Model name is required"
+            )
+        
+        # Update the Whisper model name in the configuration.
+        EvIELTSConfig.openai_whisper_model_name = model_name
+
+        # Return a success response with the updated model name.
+        return {
+            "model_name": EvIELTSConfig.openai_whisper_model_name
+        }
     
-    # Update the Whisper model name in the configuration.
-    EvIELTSConfig.openai_whisper_model_name = model_name
+    except TranscribeException as error:
+        # Re-raise the TranscribeException for further handling.
+        raise error
+    
+    except Exception as error:
+        # Log the error for debugging purposes.
+        logging.error(f"Error updating Whisper model name: {str(error)}")
 
-    # Return a success response with the updated model name.
-    return {
-        "model_name": EvIELTSConfig.openai_whisper_model_name
-    }
+        # Raise a TranscribeClientException for any unexpected errors.
+        raise TranscribeClientException(
+            information="UPDATE -> Whisper Model Name",
+            detail=str(error)
+        )
 
 # MARK: UpdateWhisperInitialPrompt
 # Function to update the Whisper initial prompt in the configuration.
@@ -507,25 +504,40 @@ async def update_whisper_initial_prompt(
     Returns:
         dict: A dictionary containing the updated Whisper initial prompt.
     """
-    # Check if the initial prompt is provided.
-    if not initial_prompt:
-        # Log the error for debugging purposes.
-        logging.error("Initial prompt is required for updating Whisper initial prompt")
+    try:
+        # Check if the initial prompt is provided.
+        if not initial_prompt:
+            # Log the error for debugging purposes.
+            logging.error("Initial prompt is required for updating Whisper initial prompt")
 
-        # Raise an exception if the initial prompt is not provided.
-        raise TranscribeClientException(
-            information="GET -> Update Whisper Initial Prompt",
-            detail="Initial prompt is required"
-        )
+            # Raise an exception if the initial prompt is not provided.
+            raise TranscribeClientException(
+                information="UPDATE -> Whisper Initial Prompt",
+                detail="Initial prompt is required"
+            )
+        
+        # Update the Whisper initial prompt in the configuration.
+        global _whisper_initial_prompt
+        _whisper_initial_prompt = initial_prompt
+
+        # Return a success response with the updated initial prompt.
+        return {
+            "initial_prompt": _whisper_initial_prompt
+        }
     
-    # Update the Whisper initial prompt in the configuration.
-    global _whisper_initial_prompt
-    _whisper_initial_prompt = initial_prompt
+    except TranscribeException as error:
+        # Re-raise the TranscribeException for further handling.
+        raise error
+    
+    except Exception as error:
+        # Log the error for debugging purposes.
+        logging.error(f"Error updating Whisper initial prompt: {str(error)}")
 
-    # Return a success response with the updated initial prompt.
-    return {
-        "initial_prompt": _whisper_initial_prompt
-    }
+        # Raise a TranscribeClientException for any unexpected errors.
+        raise TranscribeClientException(
+            information="UPDATE -> Whisper Initial Prompt",
+            detail=str(error)
+        )
 
 # MARK: UpdateUseSileroVAD
 # Function to update the Silero VAD usage in the configuration.
@@ -548,7 +560,7 @@ async def update_use_silero_vad(
 
         # Raise an exception if the use_silero_vad is not provided.
         raise TranscribeClientException(
-            information="GET -> Update Use Silero VAD",
+            information="UPDATE -> Use Silero VAD",
             detail="Use Silero VAD flag is required"
         )
     
@@ -578,6 +590,10 @@ async def update_use_silero_vad(
         return {
             "use_silero_vad": _use_silero_vad
         }
+    
+    except TranscribeException as error:
+        # Re-raise the TranscribeException for further handling.
+        raise error
 
     except Exception as error:
         # Log the error for debugging purposes.
@@ -588,65 +604,3 @@ async def update_use_silero_vad(
             information="GET -> Update Use Silero VAD",
             detail=str(error)
         )
-
-# MARK: ExceptionHandler
-# Define an exception handler for TranscribeErrorException.
-async def transcribe_error_exception_handler(_, exc: TranscribeErrorException):
-    """
-    Exception handler for TranscribeErrorException.
-
-    Args:
-        _: The request object.
-        exc: The TranscribeErrorException instance.
-
-    Returns:
-        dict: A standardized error response.
-    """
-    # Return a standardized error response.
-    return standart_response(
-        data=exc.detail,
-        code=exc.status_code,
-        status="Error",
-        message=f"An error occurred while processing the transcribe"
-    )
-
-# Define an exception handler for TranscribeClientException.
-async def transcribe_client_exception_handler(_, exc: TranscribeClientException):
-    """
-    Exception handler for TranscribeClientException.
-
-    Args:
-        _: The request object.
-        exc: The TranscribeClientException instance.
-
-    Returns:
-        dict: A standardized error response.
-    """
-    # Return a standardized error response.
-    return standart_response(
-        data=exc.detail,
-        code=exc.status_code,
-        status="Client Error",
-        message=f"A client error occurred while processing the transcribe"
-    )
-
-# Define an exception handler for TranscribeServerException.
-async def transcribe_server_exception_handler(_, exc: TranscribeServerException):
-    """
-    Exception handler for TranscribeServerException.
-
-    Args:
-        _: The request object.
-        exc: The TranscribeServerException instance.
-    
-    Returns:
-        dict: A standardized error response.
-    """
-
-    # Return a standardized error response.
-    return standart_response(
-        data=exc.detail,
-        code=exc.status_code,
-        status="Server Error",
-        message=f"A server error occurred while processing the transcribe"
-    )

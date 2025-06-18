@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import EvIELTSConfig
 from .logging import configure_logging, LogLevels
 from .api import register_routes
+from .exception import register_exception_handlers
 from app.core.services.response import standart_response
 from app.transcribe.services.v1 import service as v1_transcribe_service
 
@@ -34,6 +35,11 @@ app.add_middleware(
 # Define a startup event in the EvIELTS API application.
 @app.on_event("startup")
 async def startup_event():
+    """
+    Startup event handler for the EvIELTS API application.
+
+    This function is called when the application starts up.
+    """
     # Load the Silero VAD model during application startup.
     model = v1_transcribe_service.load_silero_vad_model()
 
@@ -43,6 +49,10 @@ async def startup_event():
 # MARK: RegisterRoutes
 # Function to register all API routes.
 register_routes(app)
+
+# MARK: RegisterExceptionHandlers
+# Function to register exception handlers for the application.
+register_exception_handlers(app)
 
 # MARK: RootEndpoint
 # Define the root endpoint for the API.
