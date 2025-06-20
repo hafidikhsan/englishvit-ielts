@@ -38,4 +38,4 @@ def standart_response(data: Any, code: int, status: str, message: str) -> JSONRe
     )
 
     # Return the JSON response with the response model.
-    return JSONResponse(content=response.dict(), status_code=code, media_type="application/json")
+    return JSONResponse(content=response.dict(), status_code=code, media_type="application/json; charset=utf-8")
