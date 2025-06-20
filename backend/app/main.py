@@ -19,6 +19,7 @@ configure_logging(log_level=LogLevels.info)
 app = FastAPI(
     title=EvIELTSConfig.app_name,
     version=EvIELTSConfig.app_version,
+    debug=False,
 )
 
 # MARK: CORS
